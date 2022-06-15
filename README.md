@@ -1,2 +1,2 @@
 # tinylang
-a small programming language written in Java
+tiny compiler written in java
