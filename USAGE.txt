@@ -1,0 +1,12 @@
+Example of compiling a program:
+
+go to folder sample_programs+binary &
+
+run java -jar tinylang.jar program1 to execture program1.tl
+
+
+____________________END____________________________________
+
+
+Compiling the project : go to dir tinylang-compiler-src and run
+mvn package
