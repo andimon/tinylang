@@ -4,7 +4,7 @@ A compiler built for a study unit [CPS2000](https://www.um.edu.mt/courses/studyu
 For information regarding implementation details see [report](/report.pdf).
 ## Usage
 
-Execute the following TinyLang program (`program1.tl`):
+Executing the following TinyLang program (`program1.tl`):
 ```
 /*
  Testing
@@ -16,7 +16,7 @@ let numru : float = (-2)+3.2;
 print numru;
 ```
 
-from project's directory run: 
+From project's directory run: 
 
 `cd sample_programs_and_binary && java -jar tinylang.jar program1`
 
