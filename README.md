@@ -16,7 +16,7 @@ let numru : float = (-2)+3.2;
 print numru;
 ```
 
-by running 
+from project's directory run: 
 
 `cd sample_programs_and_binary && java -jar tinylang.jar program1`
 
