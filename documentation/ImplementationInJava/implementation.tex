@@ -1,0 +1,3437 @@
+
+\chapter{Implementation}
+\section{Lexer}
+\begin{lstlisting}[basicstyle=\miniscule,language=Java, caption= State type]
+package tinylanglexer;
+public enum StateType {
+	ACCEPTING,
+	REJECTING
+}
+\end{lstlisting}
+\begin{lstlisting}[basicstyle=\miniscule,language=Java,caption=tinylang's dfsa states,label=listing:states enum]
+package tinylanglexer;
+public enum State {
+	/**
+	 * The starting state of representing TinyLang's grammar.
+	 */
+	STARTING_STATE (StateType.REJECTING),
+	STATE_1 (StateType.REJECTING),
+	STATE_2 (StateType.REJECTING),
+	/* Lexemes leading to STATE_3 -> Lexeme of type TOK_CHAR_LITERAL */
+	STATE_3 (StateType.ACCEPTING),
+	/* Lexemes leading to STATE_4 -> Lexeme of type TOK_IDENTIFIER_LITERAL or other KEYWORD type */
+	STATE_4 (StateType.ACCEPTING),
+	/* Lexemes leading to STATE_5 -> Lexeme of type TOK_ MULTIPLICATIVE_OP[*/	
+	STATE_5 (StateType.ACCEPTING), 
+	/* Lexemes leading to STATE_6 -> Lexeme of type TOK_SKIP */	
+	STATE_6 (StateType.ACCEPTING),
+	/* Lexemes leading to STATE_7 -> Lexeme of type TOK_SKIP */	
+	STATE_7 (StateType.REJECTING),
+	STATE_8 (StateType.REJECTING),
+	/* Lexemes leading to STATE_9 -> Lexeme of type TOK_SKIP */	
+	STATE_9 (StateType.ACCEPTING),
+	/* Lexemes leading to STATE_10 -> Lexeme of some PUNCTUATION type*/	
+	STATE_10 (StateType.ACCEPTING),
+	/* Lexemes leading to STATE_11 -> Lexeme of type TOK_INTEGER_LITERAL*/	
+	STATE_11 (StateType.ACCEPTING),
+	STATE_12 (StateType.REJECTING),
+	/* Lexemes leading to STATE_13 -> Lexeme of type TOK_FLOAT_LITERAL*/	
+	STATE_13 (StateType.ACCEPTING),
+	/* Lexemes leading to STATE_14 -> Lexeme of type TOK_MUTIPLICATIVE_OP or TOK_ADDITIVE_OP*/	
+	STATE_14 (StateType.ACCEPTING),
+	/* Lexemes leading to STATE_15 -> Lexeme of type TOK_ADDITIVE_OP*/	
+	STATE_15 (StateType.ACCEPTING),
+	/* Lexemes leading to STATE_16 -> Lexeme of type TOK_RELATIONAL_OP*/	
+	STATE_16 (StateType.ACCEPTING),
+	STATE_17 (StateType.REJECTING),
+	/* Lexemes leading to STATE_18 -> Lexeme of type TOK_RELATIONAL_OP*/	
+	STATE_18 (StateType.ACCEPTING),
+	
+	/* Lexemes leading to STATE_18 -> Lexeme of type TOK_RELATIONAL_OP*/	
+	STATE_19 (StateType.ACCEPTING),
+	STATE_ERROR(StateType.REJECTING),
+	/* STATE_BAD USED IN ALGORITHM OF GENERATING TOKENS FROM TRANSITION TABLE */
+	STATE_BAD(StateType.REJECTING);
+	private final StateType stateType;
+	/**
+	 * 
+	 * @param stateId
+	 */
+	State(StateType stateType) {
+		this.stateType = stateType;
+	}
+	
+	/**
+	 * Getter method for getting a state's id
+	 * @return
+	 */
+	public StateType getStateType() {
+		return this.stateType;
+	}
+	public TokenType getTokenType(String lexeme){
+		
+		switch(this) {
+		case STATE_3:
+			return TokenType.TOK_CHAR_LITERAL;
+		
+		case STATE_4:
+			switch(lexeme) {
+				case "fn":
+					return TokenType.TOK_FN;
+				case "bool":
+					return TokenType.TOK_BOOL_TYPE;
+				case "int":
+					return TokenType.TOK_INT_TYPE;
+				case "float":
+					return TokenType.TOK_FLOAT_TYPE;
+				case "false":
+				case "true":
+					return TokenType.TOK_BOOL_LITERAL;
+				case "not":
+					return TokenType.TOK_NOT;
+				case "let":
+					return TokenType.TOK_LET;
+				case "char":
+					return TokenType.TOK_CHAR_TYPE;
+				case "if":
+					return TokenType.TOK_IF;		
+				case "else":
+					return TokenType.TOK_ELSE;
+				case "while":
+					return TokenType.TOK_WHILE;	
+				case "for":
+					return TokenType.TOK_FOR;	
+				case "print":
+					return TokenType.TOK_PRINT;
+				case "return":
+					return TokenType.TOK_RETURN;
+				case "and":
+					return TokenType.TOK_MULTIPLICATIVE_OP;
+				case "or":
+					return TokenType.TOK_ADDITIVE_OP;
+					
+				default:
+					return TokenType.TOK_IDENTIFIER;
+			}
+		
+		case STATE_5:
+			return TokenType.TOK_MULTIPLICATIVE_OP;
+			
+		case STATE_6:
+			return TokenType.TOK_SKIP;
+		
+		case STATE_9:
+			return TokenType.TOK_SKIP;
+		
+		case STATE_10:
+			switch(lexeme) {
+			case ":":
+				return TokenType.TOK_COLON;
+			case ";":
+				return TokenType.TOK_SEMICOLON;
+			case "(":
+				return TokenType.TOK_LEFT_ROUND_BRACKET;
+			case ")":
+				return TokenType.TOK_RIGHT_ROUND_BRACKET;
+			case "{":
+				return TokenType.TOK_LEFT_CURLY_BRACKET;
+			case "}":
+				return TokenType.TOK_RIGHT_CURLY_BRACKET;
+			case ",":
+				return TokenType.TOK_COMMA;
+			case ".":
+				return TokenType.TOK_DOT;
+			default:
+				return TokenType.INVALID;
+			
+			}
+		case STATE_11:
+			return TokenType.TOK_INT_LITERAL;
+		
+		case STATE_13:
+			return TokenType.TOK_FLOAT_LITERAL;
+		case STATE_14:
+			switch(lexeme) {
+				case "*":
+					return TokenType.TOK_MULTIPLICATIVE_OP;
+				case "+":
+					return TokenType.TOK_ADDITIVE_OP;
+				default:
+					return TokenType.INVALID;
+			}
+		case STATE_15:
+			
+			return TokenType.TOK_ADDITIVE_OP;
+		
+		case STATE_16:
+			switch(lexeme) {
+			case "=":
+				return TokenType.TOK_EQUAL;
+			default:
+				return TokenType.TOK_RELATIONAL_OP;
+			}
+		case STATE_18:
+			return TokenType.TOK_RIGHT_ARROW;
+		
+		case STATE_19:
+			return TokenType.TOK_RELATIONAL_OP;	
+		default:
+			return TokenType.INVALID;
+		}
+	}
+}
+\end{lstlisting}
+\begin{lstlisting}[basicstyle=\miniscule,language=Java,caption=Implementation of classifier table,label=listing:classifier table]
+package tinylanglexer;
+/**
+ * Consists of all possible inputs
+ * of dfsa representing TinyLang's grammar.
+ * 
+ * Total number of inputs : 16
+ * @author andre
+ *
+ */
+public enum InputCategory {
+	/* LETTER ∈ {a,b,...,z,A,B,...,Z} ≡ ASCII LETTER ∈ {[0x41,0x5a],[0x61,0x7a]} */
+	LETTER,
+	/* DIGIT ∈ {0,1,2,...,9} ≡ ASCII DIGIT ∈ {[0x30,0x39]]} */
+	DIGIT,
+	/* UNDERSCORE ∈ {_} ≡ ASCII UNDERSCORE ∈ {0x5f} */	
+	UNDERSCORE,
+	/* SLASH_DIVIDE ∈ {/} ≡ ASCII SLASH_DIVIDE ∈ {0x2f} */		
+	SLASH_DIVIDE ,
+	/* ASTERISK ∈ {*} ≡ ASCII ASTERISK ∈ {0x2a} */
+	ASTERISK,
+	/* LESS_THAN ∈ {<} ≡ ASCII LESS_THAN ∈ {0x3c} */
+	LESS_THAN,
+	/* FORWARD_SLASH ∈ {>} ≡ ASCII FORWARD_SLASH ∈ {0x3e} */
+	GREATER_THAN,
+	/* PLUS ∈ {+} ≡ ASCII FORWARD_SLASH ∈ {0x2B} */
+	PLUS,
+	/* HYPHEN_MINUS ∈ {-} ≡ ASCII HYPHEN_MINUS ∈ {0x2d} */
+	HYPHEN_MINUS,
+	/* EQUAL ∈ {=} ≡ ASCII HYPHEN_MINUS ∈ {0x3d} */
+	EQUAL,
+	/* EXCLAMATION_MARK ∈ {!} ≡ ASCII EXCLAMATION_MARK ∈ {0x21} */
+	EXCLAMATION_MARK,
+	/* DOT ∈ {.} ≡ ASCII HYPHEN_MINUS ∈ {0x2e} */
+	DOT,
+	/* SINGLE_QUOTE ∈ {'} ≡ ASCII HYPHEN_MINUS ∈ {0x27} */
+	SINGLE_QUOTE,
+	/* PUNCTUATION ∈ {( ,) ,, ‚: ,;,{ ,} } ≡ ASCII PUNCTUATION ∈ {0x28, 0x29,0x2c, 0x3a, 0x3b,0x7b ,0x7d} */
+	PUNCT,
+	/* ASCII : OTHER_PRINTABLE ∈ {[0x20,0x7e]} 
+	 * \ (LETTERS,DIGITS ∪ UNDERSCORE ∪ FORWARD_SLASH ∪ ASTERISK ∪ LESS_THAN
+	 * 	  ∪ GREATER_THAN ∪ PLUS,MINUS ∪ EQUAL ∪ EXCLAMATION_MARK ∪ DOT
+	 *    ∪ SINGLE_QUOTE ∪ PUNCTUATION) */
+	OTHER_PRINTABLE,
+	/* LINE_FEED ∈ {\n} ≡ ASCII LINE_FEED ∈ {0x0a} */
+	LINE_FEED
+}
+\end{lstlisting}
+\begin{lstlisting}[basicstyle=\miniscule,language=Java,caption=Implementation of transition table,label=listing:transition table]
+package tinylanglexer;
+import java.util.HashMap;
+import java.util.Map;
+public class TransitionTable {
+	protected Map<TransitionInput,State> buildTransitionTable(){
+		Map<TransitionInput,State> transitionTable = new HashMap<TransitionInput,State>();
+		State fromState;
+		/************** transition table row 1 ****/
+		fromState = State.STARTING_STATE;
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LETTER), State.STATE_4);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.DIGIT), State.STATE_11);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.UNDERSCORE), State.STATE_4);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.SLASH_DIVIDE), State.STATE_5);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.ASTERISK), State.STATE_14);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LESS_THAN), State.STATE_16);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.GREATER_THAN), State.STATE_16);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.PLUS), State.STATE_14);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.HYPHEN_MINUS), State.STATE_15);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.EQUAL), State.STATE_16);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.EXCLAMATION_MARK), State.STATE_17);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.DOT), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.SINGLE_QUOTE), State.STATE_1);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.PUNCT), State.STATE_10);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.OTHER_PRINTABLE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LINE_FEED), State.STATE_ERROR);
+		/************** end transition table row 1 ****/
+		/************** transition table row 2 ****/
+		fromState = State.STATE_1;
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LETTER), State.STATE_2);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.DIGIT), State.STATE_2);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.UNDERSCORE), State.STATE_2);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.SLASH_DIVIDE), State.STATE_2);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.ASTERISK), State.STATE_2);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LESS_THAN), State.STATE_2);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.GREATER_THAN), State.STATE_2);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.PLUS), State.STATE_2);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.HYPHEN_MINUS), State.STATE_2);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.EQUAL), State.STATE_2);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.EXCLAMATION_MARK), State.STATE_2);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.DOT), State.STATE_2);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.SINGLE_QUOTE), State.STATE_2);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.PUNCT), State.STATE_2);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.OTHER_PRINTABLE), State.STATE_2);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LINE_FEED), State.STATE_ERROR);
+		/************** end transition table row 2 ****/
+		/************** transition table row 3 ****/
+		fromState = State.STATE_2;
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LETTER), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.DIGIT), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.UNDERSCORE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.SLASH_DIVIDE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.ASTERISK), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LESS_THAN), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.GREATER_THAN), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.PLUS), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.HYPHEN_MINUS), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.EQUAL), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.EXCLAMATION_MARK), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.DOT), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.SINGLE_QUOTE), State.STATE_3);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.PUNCT), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.OTHER_PRINTABLE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LINE_FEED), State.STATE_ERROR);
+		/************** end transition table row 3 ****/
+		/************** transition table row 4  ****/
+		fromState = State.STATE_3;
+		for (InputCategory input : InputCategory.values()) {
+			transitionTable.put(new TransitionInput(fromState,input), State.STATE_ERROR);
+		}
+		/************** end transition table row 4 ****/
+		/************** transition table row 5 ****/
+		fromState = State.STATE_4;
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LETTER), State.STATE_4);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.DIGIT), State.STATE_4);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.UNDERSCORE), State.STATE_4);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.SLASH_DIVIDE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.ASTERISK), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LESS_THAN), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.GREATER_THAN), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.PLUS), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.HYPHEN_MINUS), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.EQUAL), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.EXCLAMATION_MARK), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.DOT), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.SINGLE_QUOTE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.PUNCT), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.OTHER_PRINTABLE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LINE_FEED), State.STATE_ERROR);
+		/************** end transition table row 5 ****/
+		/************** transition table row 6  ****/
+		fromState = State.STATE_5;
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LETTER), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.DIGIT), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.UNDERSCORE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.SLASH_DIVIDE), State.STATE_6);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.ASTERISK), State.STATE_7);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LESS_THAN), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.GREATER_THAN), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.PLUS), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.HYPHEN_MINUS), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.EQUAL), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.EXCLAMATION_MARK), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.DOT), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.SINGLE_QUOTE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.PUNCT), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.OTHER_PRINTABLE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LINE_FEED), State.STATE_ERROR);
+		/************** end transition table row 6 ****/
+		/************** transition table row 7  ****/
+		fromState = State.STATE_6;
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LETTER), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.DIGIT), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.UNDERSCORE), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.SLASH_DIVIDE), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.ASTERISK), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LESS_THAN), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.GREATER_THAN), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.PLUS), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.HYPHEN_MINUS), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.EQUAL), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.EXCLAMATION_MARK), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.DOT), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.SINGLE_QUOTE), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.PUNCT), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.OTHER_PRINTABLE), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LINE_FEED), State.STATE_ERROR);
+		/************** end transition table row 7 ****/
+		/************** transition table row 8  ****/
+		fromState = State.STATE_7;
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LETTER), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.DIGIT), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.UNDERSCORE), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.SLASH_DIVIDE), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.ASTERISK), State.STATE_8);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LESS_THAN), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.GREATER_THAN), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.PLUS), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.HYPHEN_MINUS), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.EQUAL), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.EXCLAMATION_MARK), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.DOT), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.SINGLE_QUOTE), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.PUNCT), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.OTHER_PRINTABLE), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LINE_FEED), fromState);
+		/************** end transition table row 8 ****/
+		/************** transition table row 9  ****/
+		fromState = State.STATE_8;
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LETTER), State.STATE_7);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.DIGIT), State.STATE_7);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.UNDERSCORE), State.STATE_7);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.SLASH_DIVIDE), State.STATE_9);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.ASTERISK), State.STATE_7);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LESS_THAN), State.STATE_7);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.GREATER_THAN), State.STATE_7);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.PLUS), State.STATE_7);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.HYPHEN_MINUS), State.STATE_7);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.EQUAL), State.STATE_7);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.EXCLAMATION_MARK), State.STATE_7);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.DOT), State.STATE_7);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.SINGLE_QUOTE), State.STATE_7);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.PUNCT), State.STATE_7);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.OTHER_PRINTABLE), State.STATE_7);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LINE_FEED), State.STATE_7);
+		/************** end transition table row 9  ****/
+		/************** transition table row 10  ****/
+		fromState = State.STATE_9;
+		for (InputCategory input : InputCategory.values()) {
+			transitionTable.put(new TransitionInput(fromState,input), State.STATE_ERROR);
+		}
+		/************** end transition table row 10 ****/
+		/************** transition table row 11 ****/
+		fromState = State.STATE_10;
+		for (InputCategory input : InputCategory.values()) {
+			transitionTable.put(new TransitionInput(fromState,input), State.STATE_ERROR);
+		}
+		/************** end transition table row 11 ****/
+		
+		/************** transition table row 12 ****/
+		fromState = State.STATE_11;
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LETTER), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.DIGIT), State.STATE_11);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.UNDERSCORE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.SLASH_DIVIDE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.ASTERISK), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LESS_THAN), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.GREATER_THAN), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.PLUS), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.HYPHEN_MINUS), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.EQUAL), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.EXCLAMATION_MARK), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.DOT), State.STATE_12);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.SINGLE_QUOTE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.PUNCT), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.OTHER_PRINTABLE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LINE_FEED), State.STATE_ERROR);
+		/************** end transition table row 12  ****/
+		
+		/************** transition table row 13 ****/
+		fromState = State.STATE_12;
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LETTER), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.DIGIT), State.STATE_13);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.UNDERSCORE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.SLASH_DIVIDE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.ASTERISK), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LESS_THAN), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.GREATER_THAN), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.PLUS), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.HYPHEN_MINUS), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.EQUAL), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.EXCLAMATION_MARK), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.DOT), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.SINGLE_QUOTE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.PUNCT), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.OTHER_PRINTABLE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LINE_FEED), State.STATE_ERROR);
+		/************** end transition table row 13  ****/
+		
+		/************** transition table row 14  ****/
+		fromState = State.STATE_13;
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LETTER), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.DIGIT), fromState);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.UNDERSCORE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.SLASH_DIVIDE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.ASTERISK), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LESS_THAN), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.GREATER_THAN), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.PLUS), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.HYPHEN_MINUS), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.EQUAL), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.EXCLAMATION_MARK), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.DOT), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.SINGLE_QUOTE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.PUNCT), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.OTHER_PRINTABLE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LINE_FEED), State.STATE_ERROR);
+		/************** end transition table row 14 *****/
+		/************** transition table row 15  ****/
+		fromState = State.STATE_14;
+		for (InputCategory input : InputCategory.values()) {
+			transitionTable.put(new TransitionInput(fromState,input), State.STATE_ERROR);
+		}
+		/************** end transition table row 15  ****/
+		/************** transition table row 16 ****/
+		fromState = State.STATE_15;
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LETTER), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.DIGIT), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.UNDERSCORE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.SLASH_DIVIDE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.ASTERISK), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LESS_THAN), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.GREATER_THAN), State.STATE_18);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.PLUS), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.HYPHEN_MINUS), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.EQUAL), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.EXCLAMATION_MARK), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.DOT), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.SINGLE_QUOTE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.PUNCT), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.OTHER_PRINTABLE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LINE_FEED), State.STATE_ERROR);
+		/************** end transition table row 16  ****/
+		/************** transition table row 17 ****/
+		fromState = State.STATE_16;
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LETTER), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.DIGIT), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.UNDERSCORE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.SLASH_DIVIDE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.ASTERISK), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LESS_THAN), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.GREATER_THAN), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.PLUS), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.HYPHEN_MINUS), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.EQUAL), State.STATE_19);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.EXCLAMATION_MARK), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.DOT), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.SINGLE_QUOTE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.PUNCT), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.OTHER_PRINTABLE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LINE_FEED), State.STATE_ERROR);
+		/************** end transition table row 17  ****/
+		/************** transition table row 18  ****/
+		fromState = State.STATE_17;
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LETTER), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.DIGIT), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.UNDERSCORE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.SLASH_DIVIDE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.ASTERISK), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LESS_THAN), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.GREATER_THAN), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.PLUS), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.HYPHEN_MINUS), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.EQUAL), State.STATE_19);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.EXCLAMATION_MARK), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.DOT), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.SINGLE_QUOTE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.PUNCT), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.OTHER_PRINTABLE), State.STATE_ERROR);
+		transitionTable.put(new TransitionInput(fromState,InputCategory.LINE_FEED), State.STATE_ERROR);
+		/************** end transition table row 18  ****/
+		/************** transition table row 19  ****/
+		fromState = State.STATE_18;
+		for (InputCategory input : InputCategory.values()) {
+			transitionTable.put(new TransitionInput(fromState,input), State.STATE_ERROR);
+		}
+		/************** end transition table row 19 ****/
+		/************** transition table row 20  ****/
+		fromState = State.STATE_19;
+		for (InputCategory input : InputCategory.values()) {
+			transitionTable.put(new TransitionInput(fromState,input), State.STATE_ERROR);
+		}
+		/************** end transition table row 20 ****/	
+		return transitionTable;
+	}
+}
+\end{lstlisting}
+
+\begin{lstlisting}[basicstyle=\miniscule,language=Java,caption=Token Types,label=listing:token types]
+package tinylanglexer;
+/**
+ * Infinite amount of possible lexemes are 
+ * categorised into a finite amount of groups.
+ * Therefore a lexeme is a string with an 
+ * identified meaning in the language.
+ * @author andre
+ */
+public enum TokenType {
+	/**
+	 * Syntax Error Handler
+	 * Identifies lexemes which are not accepted by TinyLang's grammar.
+	 */
+	INVALID,
+	/**
+	 *Control Flow Keyword
+	 *Value(s) : if
+	 */
+	TOK_IF,
+	/**
+	 * Control Flow Keyword
+	 * Value(s) : else
+	 */
+	TOK_ELSE,
+	/**
+	 * Iteration Keyword 
+	 * Value(s) : for
+	 */
+	TOK_FOR,
+	/**
+	 * Iteration Keyword
+	 * Value(s) : while
+	 */
+	TOK_WHILE,
+	/**
+	 * Structure Keyword
+	 * Value(s) : fn
+	 */
+	TOK_FN,
+	/**
+	 * Returning Keyword 
+	 * Value(s) : fn
+	 */
+	TOK_RETURN,
+	/**
+	 * Data Type Keyword 
+	 * Value(s) : int
+	 */
+	TOK_INT_TYPE,
+	/**
+	 * Data Type Keyword 
+	 * Value(s) : float
+	 */
+	TOK_FLOAT_TYPE,
+	/**
+	 * Data Type Keyword 
+	 * Value(s) : not
+	 */
+	TOK_NOT,
+	/**
+	 * Data Type Keyword 
+	 * Value(s) : bool
+	 */
+	TOK_BOOL_TYPE,
+	/**
+	 * Data Type Keyword 
+	 * Value(s) : char
+	 */
+	TOK_CHAR_TYPE,
+	/**
+	 * Keyword Token 
+	 * Value(s) : let
+	 * identify variable declaration
+	 */
+	TOK_LET,
+	/**
+	 * Keyword Token
+	 * Value(s) : ->
+	 * specify return type of a function
+	 */
+	TOK_RIGHT_ARROW,
+	
+	/**
+	 * Keyword Token
+	 * Value(s) : print
+	 * identify print statement
+	 */
+	TOK_PRINT,
+	/**
+	 * Punctuation 
+	 * Value(s) : (
+	 */
+	TOK_LEFT_ROUND_BRACKET,
+	/**
+	 * Punctuation 
+	 * Value(s) : )
+	 */
+	TOK_RIGHT_ROUND_BRACKET,
+	/**
+	 * Punctuation 
+	 * Value(s) : {
+	 */
+	TOK_LEFT_CURLY_BRACKET,
+	/**
+	 * Punctuation
+	 * Value(s) : }
+	 */
+	TOK_RIGHT_CURLY_BRACKET,
+	/**
+	 * Punctuation 
+	 * Value(s) : ,
+	 */
+	TOK_COMMA,
+	/**
+	 * Punctuation 
+	 * Value(s) : 
+	 */
+	TOK_DOT,
+	/**
+	 * Punctuation 
+	 * Value(s) : :
+	 */
+	TOK_COLON,
+	/**
+	 * Punctuation 
+	 * Value(s) : ;
+	 */
+	TOK_SEMICOLON,
+	
+	/**
+	 * Punctuation 
+	 * Value(s) : ;
+	 */
+	TOK_MULTIPLICATIVE_OP,
+	/**
+	 * 
+	 * Value(s) : (
+	 */
+	TOK_ADDITIVE_OP,
+	/**
+	 * Operation Token Name
+	 * Value(s) : =
+	 */
+	TOK_EQUAL,
+	/**
+	 * Operation Token Name
+	 * Value(s) : '<' '>' '==' '!=' '<=' '>='
+	 */
+	TOK_RELATIONAL_OP,
+	/**
+	 * Token Name
+	 */
+	TOK_IDENTIFIER,
+	/**
+	 * Token Name
+	 * Value(s) : true , false
+	 */
+	TOK_BOOL_LITERAL,
+	/**
+	 * Token Name
+	 */
+	TOK_INT_LITERAL,
+	/**
+	 * Token Name
+	 */
+	TOK_FLOAT_LITERAL,
+	/**
+	 * Token Name
+	 */
+	TOK_CHAR_LITERAL,
+
+	/**
+	 * Special Token 
+	 */
+	TOK_SKIP,
+	/**
+	 * Special Token 
+	 * Used to identify end of program
+	 */
+	TOK_EOF
+}
+\end{lstlisting}
+\begin{lstlisting}[basicstyle=\miniscule,language=Java,caption={Token=(TokenType,(Lexeme,LineNumber))},label=listing:token]
+package tinylanglexer;
+public class Token {
+	//attribute associated with token type
+	private String lexeme;
+	//tokenType
+	private TokenType tokenType;
+	//line number where lexeme resided
+	private int lineNumber;
+	public Token(TokenType tokenType,String lexeme) {
+		this.tokenType = tokenType;
+		this.lexeme = lexeme;
+	}
+	// setters and getters
+	public String getLexeme() {
+		return lexeme;
+	}
+	public void setLexeme(String lexeme) {
+		this.lexeme = lexeme;
+	}
+	public TokenType getTokenType() {
+		return this.tokenType;
+	}
+	public void setTokenType(TokenType tokenType) {
+		this.tokenType = tokenType;	
+	}
+	public int getLineNumber() {
+		return lineNumber;
+	}
+	public void setLineNumber(int lineNumber) {
+		this.lineNumber = lineNumber;
+	}
+}
+\end{lstlisting}
+\begin{lstlisting}[basicstyle=\miniscule,language=Java,caption=Table Driven Lexer,label=listing:tabledrivenlexer]
+package tinylanglexer;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Stack;
+
+/**
+ * Class for lexer implementation of TinyLang
+ * extends TransitionTable
+ * @author andre
+ */
+public class TinyLangLexer extends TransitionTable{	
+	// Obtain transition table from class TransitionTable
+	private Map<TransitionInput,State> transitionTable = buildTransitionTable();
+	// List of tokens
+	private ArrayList<Token> tokens = new ArrayList<>();
+	// Scanning -> traverse program char by char -> keep track of current char 
+	private int currentCharIndex = 0;
+	// Keep track of line number 
+	private int lineNumber = 0;
+	/**
+	 * Constructor for class TinyLangLexer
+	 * @param TinyLangProgram
+	 * @throws Exception 
+	 */
+	public TinyLangLexer(String tinyLangProgram) {
+		// build transition table
+		this.buildTransitionTable();
+		// program is empty -> only one EOF token
+        if(tinyLangProgram.length()==0)
+    		this.tokens.add(new Token(TokenType.TOK_EOF,""));
+		// if program is not empty -> loop until current char is not at the end of file
+		while(currentCharIndex<tinyLangProgram.length()) {
+			// obtain next token
+			Token nextToken = getNextToken(tinyLangProgram);
+			// set line number
+			nextToken.setLineNumber(getLineNumber(tinyLangProgram));
+			// if token is not of type TOK_SKIP add to list of tokens
+			if(nextToken.getTokenType()!= TokenType.TOK_SKIP) {
+    		this.tokens.add(nextToken);
+			}
+		}
+	}	
+	/**
+	 * Table Driven Analysis Algorithm -> Cooper & Torczon Engineer a Compiler.
+	 * @param TinyLangProgram
+	 */
+	private Token getNextToken(String tinyLangProgram) {
+		/* start initialisation stage */
+		// Set current state to start state
+		State state = State.STARTING_STATE;
+		// Current lexeme
+        String lexeme = "";
+		// Create Stack Of States 
+        Stack<State> stack = new Stack<State>();
+        // Push BAD state to the stack
+        stack.add(State.STATE_BAD);
+		/* end initialisation stage */
+        while(tinyLangProgram.charAt(currentCharIndex) == 0x0a || tinyLangProgram.charAt(currentCharIndex)==0x20 ||  tinyLangProgram.charAt(currentCharIndex)==0x09) {
+        	if(tinyLangProgram.charAt(currentCharIndex) == 0x0a) 
+        		lineNumber++;
+        	// increment char number
+        	this.currentCharIndex++;
+            // detect EOF
+         	if(currentCharIndex==tinyLangProgram.length())
+        		return new Token(TokenType.TOK_EOF,"");
+        }
+        InputCategory inputCategory;
+        char currentChar;
+        while(state!=State.STATE_ERROR &&currentCharIndex<tinyLangProgram.length()) {
+        		// obtain current CHAR
+				currentChar = tinyLangProgram.charAt(currentCharIndex);
+				// char to lexeme
+				lexeme+=currentChar;			
+				// if state is accepting clear stack
+				if (state.getStateType()==StateType.ACCEPTING) {
+					stack.clear();
+				}
+				// push state to stack
+				stack.add(state);
+			 	if (isLetter(currentChar)) {
+			 		inputCategory = InputCategory.LETTER;
+	        	}
+	        	else if (isDigit(currentChar)) {
+			 		inputCategory = InputCategory.DIGIT;
+	        	}
+	        	else if (isUnderscore(currentChar)) {
+			 		inputCategory = InputCategory.UNDERSCORE;
+	        	}
+	        	else if (isSlashDivide(currentChar)) {
+			 		inputCategory = InputCategory.SLASH_DIVIDE;
+	        	}
+	        	else if (isAsterisk(currentChar)) {
+			 		inputCategory = InputCategory.ASTERISK;
+	        	}
+	        	else if (isLessThan(currentChar)) {
+			 		inputCategory = InputCategory.LESS_THAN;
+	        	}
+	        	else if (isGreaterThan(currentChar)) {
+			 		inputCategory = InputCategory.GREATER_THAN;
+	        	}
+	        	else if (isPlus(currentChar)) {
+			 		inputCategory = InputCategory.PLUS;
+	        	}
+	        	else if (isHyphenMinus(currentChar)) {
+			 		inputCategory = InputCategory.HYPHEN_MINUS;
+	        	}
+	        	else if (isEqual(currentChar)) {
+			 		inputCategory = InputCategory.EQUAL;
+	        	}
+	        	else if (isExclamationMark(currentChar)) {
+			 		inputCategory = InputCategory.EXCLAMATION_MARK;
+	        	}
+	        	else if (isDot(currentChar)) {
+			 		inputCategory = InputCategory.DOT;
+	        	}
+	        	else if (isSingleQuote(currentChar)) {
+			 		inputCategory = InputCategory.SINGLE_QUOTE;
+	        	}
+	        	else if (isPunctuation(currentChar)) {
+			 		inputCategory = InputCategory.PUNCT;
+	        	}
+	        	else if (isOtherPrintable(currentChar)) {
+			 		inputCategory = InputCategory.OTHER_PRINTABLE;
+	        	}
+	        	else if (isLineFeed(currentChar)) {
+			 		inputCategory = InputCategory.LINE_FEED;
+	        	}
+	        	else {
+	        		throw new java.lang.RuntimeException("char "+currentChar+" in line " +lineNumber+" not recognised by TinyLang's grammar");
+	        	}
+	        		// get next transition as per transition table
+			 	
+			 	state = deltaFunction(state,inputCategory);
+			 	// move to next char
+	        	currentCharIndex++;
+	        	
+	        	
+
+	        }
+        /*          begin rollback loop              */
+        while(state!=State.STATE_BAD && state.getStateType()!=StateType.ACCEPTING) {
+        	// pop state
+        	state=stack.pop();
+        	//truncate string
+    	    lexeme = (lexeme==null||lexeme.length()==0)?null:(lexeme.substring(0, lexeme.length()-1));   
+    	    // move char index one step backwards
+    	    currentCharIndex--;
+        }
+    	if(state.getTokenType(lexeme)==TokenType.INVALID)
+    		throw new java.lang.RuntimeException(tokens.get(tokens.size()-1).getLexeme()+tinyLangProgram.charAt(currentCharIndex+1)+" in line "+lineNumber+" not recognised by TinyLang's grammar");    		
+    	else 
+    		return new Token(state.getTokenType(lexeme),lexeme);
+    	// end lineNumber
+    }
+	// predicate functions to check input category
+	private boolean isLetter(char input) {
+		return ( (0x41 <= input && input  <= 0x5a) || (0x61 <= input && input <= 0x7a) );
+	}
+	private boolean isDigit(char input) {
+		return (0x30 <= input && input  <= 0x39);
+	}	
+	private boolean isUnderscore(char input) {
+		return (input == 0x5f);
+	}
+	private boolean isSlashDivide(char input) {
+		return (input == 0x2f);
+	}
+	private boolean isAsterisk(char input) {
+		return (input == 0x2a);
+	}
+	private boolean isLessThan(char input) {
+		return (input == 0x3c);
+	}
+	private boolean isGreaterThan(char input) {
+		return (input == 0x3e);
+	}
+	private boolean isPlus(char input) {
+		return (input == 0x2b);
+	}
+	private boolean isHyphenMinus(char input) {
+		return (input == 0x2d);
+	}
+	private boolean isEqual(char input) {
+		return (input == 0x3d);
+	}
+	private boolean isExclamationMark(char input) {
+		return (input == 0x21);
+	}
+	private boolean isDot(char input) {
+		return (input == 0x2e);
+	}
+	private boolean isSingleQuote(char input) {
+		return (input == 0x27);
+	}
+	private boolean isPunctuation(char input) {
+		return (input == 0x28||input == 0x29||input == 0x2c||input==0x3a||input==0x3b||input== 0x7b||input==0x7d);
+	}
+	private boolean isOtherPrintable(char input) {
+		return ( 0x20 <= input && input <= 0x7e&&!isLetter(input) && !isDigit(input) && !isUnderscore(input) &&
+				!isSlashDivide(input) && !isAsterisk(input) && !isLessThan(input) && !isGreaterThan(input)
+				&& !isPlus(input) && !isHyphenMinus(input) && !isEqual(input) && !isExclamationMark(input)
+				&& !isDot(input) && !isSingleQuote(input)) && !isPunctuation(input);
+	}
+	private boolean isLineFeed(char input) {
+		lineNumber++;
+		return (input == 0x0a);
+	}
+	private State deltaFunction(State state,InputCategory inputCategory) {
+		return transitionTable.get(new TransitionInput(state,inputCategory));
+	}
+	
+	// setter and getter methods 
+	public ArrayList<Token> getTokens(){
+		return tokens;
+	}
+	
+	
+	private int getLineNumber(String tinyLangProgram) {
+		lineNumber = 1;
+		for(int i=0;i<currentCharIndex;i++) 
+			if (tinyLangProgram.charAt(i)==0x0a)
+				lineNumber++;
+		return lineNumber;
+				
+		
+	}
+		
+}
+\end{lstlisting}
+
+\section{Parser}
+\begin{lstlisting}[basicstyle=\miniscule,caption=general stuctures of an AST (\emph{class TinyLangAst}), label=listing:tree class implementation]
+package tinylangparser;
+import java.util.LinkedList;
+import java.util.List;
+public class TinyLangAst {
+	/* node */
+	private TinyLangAstNodes associatedNodeType;
+	private String associatedNodeValue = ""; 
+	private int lineNumber = 0;
+    TinyLangAst parent;
+    List<TinyLangAst> children;
+
+    public TinyLangAst(TinyLangAstNodes associatedNodeType,int lineNumber) {
+        this.associatedNodeType = associatedNodeType;
+        this.lineNumber=lineNumber;
+        this.children = new LinkedList<TinyLangAst>();
+    }
+    public TinyLangAst(TinyLangAstNodes associatedNodeType, String associatedNodeValue,int lineNumber) {
+        this.associatedNodeType = associatedNodeType;
+        this.associatedNodeValue = associatedNodeValue;
+        this.lineNumber=lineNumber;
+        this.children = new LinkedList<TinyLangAst>();
+    }
+    //add root of a subtree to abstract syntax tree
+    public void addSubtree(TinyLangAst subTree) {
+    	this.children.add(subTree);  
+    }
+    public TinyLangAst addChild(TinyLangAstNodes associatedNodeType,int lineNumber) {
+    	TinyLangAst childNode = new TinyLangAst(associatedNodeType,lineNumber);
+        childNode.parent = this;
+        this.children.add(childNode);
+        return childNode;
+    }
+    public TinyLangAst addChild(TinyLangAstNodes associatedNodeType,String associatedNodeValue,int lineNumber) {
+    	TinyLangAst childNode = new TinyLangAst(associatedNodeType,associatedNodeValue,lineNumber);
+        childNode.parent = this;
+        this.children.add(childNode);
+        return childNode;
+    }
+
+    // setters and getters
+    public TinyLangAstNodes getAssociatedNodeType(){
+    	return associatedNodeType;
+    };
+    public String getAssociatedNodeValue(){
+    	return associatedNodeValue;
+    }
+   // get children
+    public List<TinyLangAst> getChildren(){
+    	return children;
+    }
+    public void setLineNumber(int lineNumber) {
+    	this.lineNumber=lineNumber;   	
+    }
+    public int getLineNumber() {
+    	return lineNumber; 	
+    }
+}
+\end{lstlisting}
+\begin{lstlisting}[basicstyle=\miniscule,caption=types associated with each node/subtree (\emph{enum TinyLangAstNodes}),label=listing:tiny lang node type implementation]
+package tinylangparser;
+public enum TinyLangAstNodes {
+	//program node
+	TINY_LANG_PROGRAM_NODE,
+	//statement nodes
+	AST_VARIABLE_DECLARATION_NODE,
+	AST_ASSIGNMENT_NODE,
+	AST_PRINT_STATEMENT_NODE,
+	AST_IF_STATEMENT_NODE,
+	AST_FOR_STATEMENT_NODE,
+	AST_WHILE_STATEMENT_NODE,
+	AST_RETURN_STATEMENT_NODE,
+	AST_FUNCTION_DECLARATION_NODE,
+	AST_BLOCK_NODE,
+	AST_ELSE_BLOCK_NODE,	
+	//expression nodes
+	AST_BINARY_OPERATOR_NODE,
+	AST_UNARY_OPERATOR_NODE,
+	AST_FUNCTION_CALL_NODE,
+	//literal nodes
+	AST_BOOLEAN_LITERAL_NODE,
+	AST_INTEGER_LITERAL_NODE,
+	AST_FLOAT_LITERAL_NODE,
+	AST_CHAR_LITERAL_NODE,
+	//parameters nodes
+	AST_ACTUAL_PARAMETERS_NODE,
+	AST_FORMAL_PARAMETERS_NODE,
+	AST_FORMAL_PARAMETER_NODE,
+	//type node
+	AST_TYPE_NODE,
+	//expression nodes
+	//expression nodes leaves
+	AST_IDENTIFIER_NODE
+}
+\end{lstlisting}
+\begin{lstlisting}[basicstyle=\miniscule,caption=Implementation of recursive descent parser,label=listing:rescursive descent parser implementation]
+package tinylangparser;
+import java.util.ArrayList;
+import tinylanglexer.TinyLangLexer;
+import tinylanglexer.Token;
+import tinylanglexer.TokenType;
+public class TinyLangParser {
+	// root of ast -> describes ast capturing all the program
+	private TinyLangAst tinyLangProgramAbstractSyntaxTree;
+	// list of tokens
+	private ArrayList<Token> tokens;
+	// current token index
+	private int currentTokenIndex = 0;
+	// method for obtaining current token 
+	private Token getCurrentToken(){
+		return tokens.get(currentTokenIndex);
+	}
+	// method for obtaining next token 
+	private Token getNextToken(){
+		currentTokenIndex++;
+		return getCurrentToken();	
+	}
+	// method for obtaining previous token 
+	private Token getPrevToken(){
+		currentTokenIndex--;
+		return getCurrentToken();	
+	}
+	/**
+	 * Constructor for TinyLangParserClass
+	 * @param tinyLangLexer
+	 */
+	public TinyLangParser(TinyLangLexer tinyLangLexer) {
+		tokens = tinyLangLexer.getTokens();
+		tinyLangProgramAbstractSyntaxTree = parseTinyLangProgram();
+	}
+	/**
+	 * Parse whole TinyLangProgram using recursive descent
+	 * to call other sub parsers until TOK_EOF is reached.   
+	 */
+	private TinyLangAst parseTinyLangProgram() {
+		//program tree capturing whole syntax of tiny lang program
+		TinyLangAst programTree = new TinyLangAst(TinyLangAstNodes.TINY_LANG_PROGRAM_NODE,getCurrentToken().getLineNumber());
+		// traverse until current token reach EOF i.e. no more tokens to process 
+		while(getCurrentToken().getTokenType()!=TokenType.TOK_EOF) {
+			// parse statement one by one
+			programTree.addSubtree(parseStatement());
+			// get next token
+			getNextToken();
+		}
+		return programTree;
+	}
+	/**
+  	 * Parse a statement
+ 	 * <Statement> -> <VariableDecl> ';'
+     *<Statement> -> <Assignment> ';'
+     *<Statement> -> <PrintStatement> ';'
+     *<Statement> -> <IfStatement>  ';'
+     *<Statement> -> <ForStatement> ';'
+     *<Statement> -> <WhileStatement> ';'
+     *<Statement> -> <RtrnStatement> ';'
+     *<Statement> -> <FunctionDecl>
+     *<Statement> -> <Block>
+     *described by an  LL(1) grammar i.e. decide immediately which grammar rule to use with TokenTypes 
+     *	TOK_LET,TOK_IDENTIFIER,TOK_PRINT,TOK_WHILE,TOK_RETURN,TOK_FN,TOK_LEFT_CURLY otherwise undefined.
+	 * @param lookAhead
+	 * @param parent
+	 */
+	public TinyLangAst parseStatement() {
+		TinyLangAst statementTree;
+		switch(getCurrentToken().getTokenType()){
+		// if lookAhead = TOK_LET Statement leads to variable declaration
+		case TOK_LET:
+			//parse variable declaration
+			statementTree =parseVariableDeclaration();
+			//get next token
+			getNextToken();
+			//expecting ;
+			if(getCurrentToken().getTokenType()!=TokenType.TOK_SEMICOLON)
+				//not as expected
+				throw new java.lang.RuntimeException("expected semicolon,; , in line " + getCurrentToken().getLineNumber());			
+			return statementTree;
+		case TOK_IDENTIFIER:
+			//parse assignment
+			statementTree =  parseAssignment();
+			//get next token 
+			getNextToken();
+			//expecting ;
+			if(getCurrentToken().getTokenType()!=TokenType.TOK_SEMICOLON)
+				//not as expected
+				throw new java.lang.RuntimeException("expected semicolon,; , in line " + getCurrentToken().getLineNumber());			
+			return statementTree;
+		case TOK_PRINT:
+			statementTree = parsePrintStatement();
+			//expecting ;
+			if(getNextToken().getTokenType()!=TokenType.TOK_SEMICOLON)
+				//not as expected
+				throw new java.lang.RuntimeException("expected semicolon,; , in line " + getCurrentToken().getLineNumber());			
+			return statementTree;
+		case TOK_IF:
+			return parseIfStatement();
+		case TOK_FOR:
+			return parseForStatement();
+		case TOK_WHILE:
+			return parseWhileStatement();
+		case TOK_RETURN:
+			statementTree = parseReturnStatement();
+			//get next token
+			getNextToken();
+			//expecting ;
+			if(getCurrentToken().getTokenType()!=TokenType.TOK_SEMICOLON)
+				//not as expected
+				throw new java.lang.RuntimeException("expected semicolon,; , in line " + getCurrentToken().getLineNumber());			
+			return statementTree;
+		case TOK_FN:
+			return parseFunctionDeclaration();
+		case TOK_RIGHT_CURLY_BRACKET:
+			return parseBlock();
+		default:
+			throw new java.lang.RuntimeException("  in line "+getCurrentToken().getLineNumber()
+			+". No statement begins with "+getCurrentToken().getLexeme());
+		}
+	}
+	//parse variable declaration
+	private TinyLangAst parseVariableDeclaration() {
+		//create variable declaration syntax tree
+		TinyLangAst variableDeclarationTree = new TinyLangAst(TinyLangAstNodes.AST_VARIABLE_DECLARATION_NODE,getCurrentToken().getLineNumber());
+		//expect token let
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_LET)
+			throw new java.lang.RuntimeException("unexpected "+getCurrentToken().getLexeme()+ " in line " + getCurrentToken().getLineNumber());
+		
+		//expect that next token is identifier
+		Token identifier = getNextToken();
+		//check if identifier
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_IDENTIFIER)
+			throw new java.lang.RuntimeException(getCurrentToken().getLexeme()+ " in line " + getCurrentToken().getLineNumber()+" is not a valid variable name");
+		//get next token
+		getNextToken();
+		//expect :
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_COLON)
+			throw new java.lang.RuntimeException("unexpected "+getCurrentToken().getLexeme()+ " in line " + getCurrentToken().getLineNumber());
+		//get next token
+		getNextToken();
+		//expect type tree
+		variableDeclarationTree.addSubtree(parseType());
+		
+		//add identifier
+		variableDeclarationTree.addChild(TinyLangAstNodes.AST_IDENTIFIER_NODE,identifier.getLexeme(),identifier.getLineNumber());
+		//get next token
+		getNextToken();
+		//expect =
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_EQUAL)
+			throw new java.lang.RuntimeException("unexpected "+getCurrentToken().getLexeme()+ " in line " + getCurrentToken().getLineNumber());
+		//get next token
+		getNextToken();
+		variableDeclarationTree.addSubtree(parseExpression());
+		return variableDeclarationTree;
+	}
+	//parse assignment 
+	private TinyLangAst parseAssignment() {
+		//create assignment syntax tree
+		TinyLangAst assignmentTree = new TinyLangAst(TinyLangAstNodes.AST_ASSIGNMENT_NODE,getCurrentToken().getLineNumber());
+		//expect identifier 
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_IDENTIFIER) {
+			throw new java.lang.RuntimeException("unexpected "+getCurrentToken().getLexeme()+ " in line " + getCurrentToken().getLineNumber());
+		}
+			//add identifier node
+		assignmentTree.addChild(TinyLangAstNodes.AST_IDENTIFIER_NODE,getCurrentToken().getLexeme(),getCurrentToken().getLineNumber());
+		//get next token
+		getNextToken();
+		//expect equal
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_EQUAL)
+			throw new java.lang.RuntimeException("unexpected "+getCurrentToken().getLexeme()+ " in line " + getCurrentToken().getLineNumber());
+		//get next token
+		getNextToken();
+		//expect expression
+		assignmentTree.addSubtree(parseExpression());
+		return assignmentTree;
+	}
+	//parse print statement
+	private TinyLangAst parsePrintStatement() {
+		//create assignment syntax tree
+		TinyLangAst printStatementTree = new TinyLangAst(TinyLangAstNodes.AST_PRINT_STATEMENT_NODE,getCurrentToken().getLineNumber());
+		//expect print keyword
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_PRINT)
+			throw new java.lang.RuntimeException("unexpected "+getCurrentToken().getLexeme()+ " in line " + getCurrentToken().getLineNumber());
+		//get next token
+		getNextToken();
+		//expect expression
+		printStatementTree.addSubtree(parseExpression());
+		return printStatementTree;
+	}
+	//parse if statement
+	private TinyLangAst parseIfStatement() {
+		//create if statement syntax tree
+		TinyLangAst ifStatementTree = new TinyLangAst(TinyLangAstNodes.AST_IF_STATEMENT_NODE,getCurrentToken().getLineNumber());
+		//expect if keyword
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_IF)
+			throw new java.lang.RuntimeException("unexpected "+getCurrentToken().getLexeme()+ " in line " + getCurrentToken().getLineNumber());
+		//get next token
+		getNextToken();
+		//expect (
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_LEFT_ROUND_BRACKET)
+			throw new java.lang.RuntimeException("expected left round bracket,( , in line "+getCurrentToken().getLineNumber());
+		//get next token
+		getNextToken();
+		//add expression subtree to if statement tree
+		ifStatementTree.addSubtree(parseExpression());
+		//get next token
+		getNextToken();
+		//expected )
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_RIGHT_ROUND_BRACKET)
+			throw new java.lang.RuntimeException("expected left round bracket,( , in line "+getCurrentToken().getLineNumber());
+		//get next token
+		getNextToken();
+		//parse block
+		ifStatementTree.addSubtree(parseBlock());
+		//getNextToken()
+		getNextToken();
+		//if we have else condition
+		if(getCurrentToken().getTokenType()==TokenType.TOK_ELSE) {
+			//get next token
+			getNextToken();
+			//get else block
+			ifStatementTree.addSubtree(parseElseBlock());
+		}
+		else 
+			//get previous token
+			getPrevToken();
+		//return if statement tree
+		return ifStatementTree;
+	}
+	//parse for statement
+	private TinyLangAst parseForStatement() {
+		//create block syntax tree
+		TinyLangAst forStatementTree = new TinyLangAst(TinyLangAstNodes.AST_FOR_STATEMENT_NODE,getCurrentToken().getLineNumber());
+		//expect for keywordF
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_FOR)
+			//not as expected
+			throw new java.lang.RuntimeException("unexpected "+getCurrentToken().getLexeme()+ " in line " + getCurrentToken().getLineNumber());
+		//get next token
+		getNextToken();
+		//expect (
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_LEFT_ROUND_BRACKET)
+			//not as expected
+			throw new java.lang.RuntimeException("expected left round bracket,( , in line "+ getCurrentToken().getLineNumber());
+		//get next token
+		getNextToken();
+		//expect semicolon or variable declaration
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_SEMICOLON)
+		{
+			//expect variable declaration
+			forStatementTree.addSubtree(parseVariableDeclaration());
+			//consume variable declaration 
+			getNextToken();
+		}
+		//expect ;
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_SEMICOLON)		
+			throw new java.lang.RuntimeException("expected semicolon,; , in line "+ getCurrentToken().getLineNumber());
+		//get next token 
+		getNextToken();
+		//expect expression
+		forStatementTree.addSubtree(parseExpression());
+		//expect ;
+		if(getNextToken().getTokenType()!=TokenType.TOK_SEMICOLON)		
+			throw new java.lang.RuntimeException("expected semicolon,; , in line "+ getCurrentToken().getLineNumber());
+		//expect right round bracket or assignment
+		if(getNextToken().getTokenType()!=TokenType.TOK_RIGHT_ROUND_BRACKET)
+		{
+			//expect variable declaration
+			forStatementTree.addSubtree(parseAssignment());
+			//consume variable declaration 
+			getNextToken();
+		}
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_RIGHT_ROUND_BRACKET)		
+			throw new java.lang.RuntimeException("expected right round bracket,) , in line "+ getCurrentToken().getLineNumber());
+		//get next token
+		getNextToken();
+		//expect block
+		forStatementTree.addSubtree(parseBlock());
+		//return for statement tree
+		return forStatementTree;
+	}
+	//parse while statement
+	private TinyLangAst parseWhileStatement() {
+		//create while statement syntax tree syntax tree
+		TinyLangAst whileStatementTree = new TinyLangAst(TinyLangAstNodes.AST_WHILE_STATEMENT_NODE,getCurrentToken().getLineNumber());
+		//expect while keyword
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_WHILE)
+			//not as expected
+			throw new java.lang.RuntimeException("unexpected "+getCurrentToken().getLexeme()+ " in line " + getCurrentToken().getLineNumber());
+		//get next token
+		getNextToken();
+		//expect (
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_LEFT_ROUND_BRACKET)
+			//not as expected
+			throw new java.lang.RuntimeException("unexpected "+getCurrentToken().getLexeme()+ " in line " + getCurrentToken().getLineNumber());
+		//get next token
+		getNextToken();
+		//expect expression
+		whileStatementTree.addSubtree(parseExpression());
+		//get next token
+		getNextToken();
+		//expect )
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_RIGHT_ROUND_BRACKET)
+			//not as expected
+			throw new java.lang.RuntimeException("unexpected "+getCurrentToken().getLexeme()+ " in line " + getCurrentToken().getLineNumber());
+		//get next token
+		getNextToken();
+		//expect block
+		whileStatementTree.addSubtree(parseBlock());
+		//return syntax tree
+		return whileStatementTree;
+	}
+	//parse return statement
+	private TinyLangAst parseReturnStatement() {
+		//create while statement syntax tree syntax tree
+		TinyLangAst returnStatementTree = new TinyLangAst(TinyLangAstNodes.AST_RETURN_STATEMENT_NODE,getCurrentToken().getLineNumber());
+
+		//expect return keyword
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_RETURN)
+			//not as expected
+			throw new java.lang.RuntimeException("unexpected "+getCurrentToken().getLexeme()+ " in line " + getCurrentToken().getLineNumber());
+		//get next token
+		getNextToken();
+		//expect expression
+		returnStatementTree.addSubtree(parseExpression());
+		//return syntax tree
+		return returnStatementTree;
+	}
+	//parse function declaration
+	private TinyLangAst parseFunctionDeclaration() {
+		//create function declaration syntax tree syntax tree
+		TinyLangAst functionDeclarationTree = new TinyLangAst(TinyLangAstNodes.AST_FUNCTION_DECLARATION_NODE,getCurrentToken().getLineNumber());
+		//expect return keyword
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_FN)
+			//not as expected
+			throw new java.lang.RuntimeException("unexpected "+getCurrentToken().getLexeme()+ " in line " + getCurrentToken().getLineNumber());
+		//get next token
+		getNextToken();
+		//expect expression
+		Token identifier;
+		if(getCurrentToken().getTokenType()==TokenType.TOK_IDENTIFIER)
+			identifier = getCurrentToken();
+		else 
+			//not valid function name
+			throw new java.lang.RuntimeException(getCurrentToken().getLexeme()+ " in line " + getCurrentToken().getLineNumber()+" not a valid funciton name");
+		//get next token 
+		getNextToken();
+		//expect (
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_LEFT_ROUND_BRACKET)
+			//not as expected
+			throw new java.lang.RuntimeException("unexpected "+getCurrentToken().getLexeme()+ " in line " + getCurrentToken().getLineNumber());
+		//get next token
+		getNextToken();
+		//expect 0 or more formal parameters
+		TinyLangAst formalParamsSubtree;
+		//if not right round bracket -> we have parameters
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_RIGHT_ROUND_BRACKET){
+			formalParamsSubtree = parseFormalParams();
+			//get next token (expected round bracket in next token)
+			getNextToken();
+		}
+		else
+			//add parameter node
+			formalParamsSubtree = new TinyLangAst(TinyLangAstNodes.AST_FORMAL_PARAMETERS_NODE,getCurrentToken().getLineNumber());
+		//expect )
+
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_RIGHT_ROUND_BRACKET)
+			//not as expected
+			throw new java.lang.RuntimeException("expected right round bracket,) ,"+" in line "+getCurrentToken().getLineNumber());	
+		//get next token
+		getNextToken();
+
+		//expect ->
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_RIGHT_ARROW)
+			//not as expected
+			throw new java.lang.RuntimeException("expected right arrow,-> ,in line "+getCurrentToken().getLineNumber());
+		//get next token
+		getNextToken();
+		//parse type
+
+		TinyLangAst typeSubtree = parseType();
+		//get next token
+		getNextToken();
+
+		//parse block
+		TinyLangAst blockSubtree = parseBlock();
+		//add type subtree to function declaration tree
+		functionDeclarationTree.addSubtree(typeSubtree);
+		//add identifier node to function declaration tree
+		functionDeclarationTree.addChild(TinyLangAstNodes.AST_IDENTIFIER_NODE,identifier.getLexeme(),identifier.getLineNumber());
+		//add formal parameters subtree to function declaration tree
+		functionDeclarationTree.addSubtree(formalParamsSubtree);
+		//add block subtree to function declaration tree
+		functionDeclarationTree.addSubtree(blockSubtree);
+		//return function declaration tree
+		return functionDeclarationTree;
+	}
+	//parse block
+	private TinyLangAst parseBlock() {
+		//create block syntax tree
+		TinyLangAst blockTree = new TinyLangAst(TinyLangAstNodes.AST_BLOCK_NODE,getCurrentToken().getLineNumber());
+		//expected {
+		//set line number 
+		blockTree.setLineNumber(getCurrentToken().getLineNumber());
+		if(getCurrentToken().getTokenType() != TokenType.TOK_LEFT_CURLY_BRACKET) 
+			//not as expected
+			throw new java.lang.RuntimeException("expected { in line "+getCurrentToken().getLineNumber() );
+		// get next token
+		getNextToken();
+		// we may have one or more statements
+		// block ends using }
+		while(getCurrentToken().getTokenType()!=TokenType.TOK_RIGHT_CURLY_BRACKET &&
+				getCurrentToken().getTokenType()!=TokenType.TOK_EOF) {
+			// parse statement one by one
+
+			blockTree.addSubtree(parseStatement());
+			// get next token
+			getNextToken();
+		}
+		//expected }
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_RIGHT_CURLY_BRACKET) 
+			//not as expected
+			throw new java.lang.RuntimeException("expected } in line "+getCurrentToken().getLineNumber());
+		//return block tree
+		return blockTree;
+	}
+	//parse else block
+	private TinyLangAst parseElseBlock() {
+		//create block syntax tree
+		TinyLangAst elseBlockTree = new TinyLangAst(TinyLangAstNodes.AST_ELSE_BLOCK_NODE,getCurrentToken().getLineNumber());
+		//expected {
+		if(getCurrentToken().getTokenType() != TokenType.TOK_LEFT_CURLY_BRACKET) 
+			//not as expected
+			throw new java.lang.RuntimeException("expected { in line "+getCurrentToken().getLineNumber() );
+		// get next token
+		getNextToken();
+		// we may have one or more statements
+		// block ends using }
+		while(getCurrentToken().getTokenType()!=TokenType.TOK_RIGHT_CURLY_BRACKET &&
+				getCurrentToken().getTokenType()!=TokenType.TOK_EOF) {
+			// parse statement one by one
+			elseBlockTree.addSubtree(parseStatement());
+			// get next token
+			getNextToken();
+
+		}
+		//expected }
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_RIGHT_CURLY_BRACKET) 
+			//not as expected
+			throw new java.lang.RuntimeException("expected } in line "+getCurrentToken().getLineNumber());	
+		//return else block syntax tree
+		return elseBlockTree;
+	}
+	//parse type
+	private TinyLangAst parseType() {
+		// add node
+		switch(getCurrentToken().getTokenType()) {
+			case TOK_BOOL_TYPE:
+				return new TinyLangAst(TinyLangAstNodes.AST_TYPE_NODE,Type.BOOL.toString(),getCurrentToken().getLineNumber());
+			case TOK_INT_TYPE:
+				return new TinyLangAst(TinyLangAstNodes.AST_TYPE_NODE,Type.INTEGER.toString(),getCurrentToken().getLineNumber());
+			case TOK_FLOAT_TYPE:
+				return new TinyLangAst(TinyLangAstNodes.AST_TYPE_NODE,Type.FLOAT.toString(),getCurrentToken().getLineNumber());
+			case TOK_CHAR_TYPE:
+				return new TinyLangAst(TinyLangAstNodes.AST_TYPE_NODE,Type.CHAR.toString(),getCurrentToken().getLineNumber());
+			default:
+				throw new java.lang.RuntimeException(getCurrentToken().getLexeme()+ " in line " + getCurrentToken().getLineNumber() +" is not a valid type" );
+		}
+	}	
+	//parse expression
+	private TinyLangAst parseExpression() { 
+		//parse simple expression
+		TinyLangAst left = parseSimpleExpression();
+		//get next token
+		getNextToken();
+		//expecting 0 or more expressions separated by a relational operator
+		if(getCurrentToken().getTokenType()==TokenType.TOK_RELATIONAL_OP) {
+			//create a binary expression tree with root node containing current binary operator
+			TinyLangAst binaryExpressionTree = new TinyLangAst(TinyLangAstNodes.AST_BINARY_OPERATOR_NODE,getCurrentToken().getLexeme(),getCurrentToken().getLineNumber()); 
+			//add left operand of the binary operator
+			binaryExpressionTree.addSubtree(left);
+			//move to next token
+			getNextToken();
+			//add right operand 
+			binaryExpressionTree.addSubtree(parseExpression());	
+			return binaryExpressionTree;
+		}
+		getPrevToken();
+		//case of no relational operator
+		return left;
+	}
+	//parse simple expression
+	private TinyLangAst parseSimpleExpression() { 
+		//parse simple expression
+		TinyLangAst left = parseTerm();
+		//get next token
+		getNextToken();
+		//expecting 0 or more expressions separated by a relational operator
+		if(getCurrentToken().getTokenType()==TokenType.TOK_ADDITIVE_OP) {
+			//create a binary expression tree with root node containing current binary operator
+			TinyLangAst binaryExpressionTree = new TinyLangAst(TinyLangAstNodes.AST_BINARY_OPERATOR_NODE,getCurrentToken().getLexeme(),getCurrentToken().getLineNumber()); 
+			//add left operand of the binary operator
+			binaryExpressionTree.addSubtree(left);
+			//move to next token
+			getNextToken();
+			//add right operand 
+			binaryExpressionTree.addSubtree(parseSimpleExpression());	
+			return binaryExpressionTree;
+		}
+		getPrevToken();
+		//case of no relational operator
+		return left;
+	}
+	//parse term
+	private TinyLangAst parseTerm() { 
+		//parse factor
+		TinyLangAst left = parseFactor();
+		//get next token
+		getNextToken();
+		//expecting 0 or more expressions separated by a multiplicative operator
+		if(getCurrentToken().getTokenType()==TokenType.TOK_MULTIPLICATIVE_OP) {
+			//create a binary expression tree with root node containing current binary operator
+			TinyLangAst binaryExpressionTree = new TinyLangAst(TinyLangAstNodes.AST_BINARY_OPERATOR_NODE,getCurrentToken().getLexeme(),getCurrentToken().getLineNumber()); 
+			//add left operand of the binary operator
+			binaryExpressionTree.addSubtree(left);
+			//move to next token
+			getNextToken();
+			//add right operand 
+			binaryExpressionTree.addSubtree(parseTerm());	
+			return binaryExpressionTree;
+		}
+		getPrevToken();
+		//case of no relational operator
+		return left;
+	}
+	//parse term
+	private TinyLangAst parseFactor() { 
+		switch(getCurrentToken().getTokenType()) {
+		//literals
+		case TOK_BOOL_LITERAL:
+			return new TinyLangAst(TinyLangAstNodes.AST_BOOLEAN_LITERAL_NODE,getCurrentToken().getLexeme(),getCurrentToken().getLineNumber());
+		case TOK_INT_LITERAL:
+			return new TinyLangAst(TinyLangAstNodes.AST_INTEGER_LITERAL_NODE,getCurrentToken().getLexeme(),getCurrentToken().getLineNumber());
+		case TOK_FLOAT_LITERAL:
+			return new TinyLangAst(TinyLangAstNodes.AST_FLOAT_LITERAL_NODE,getCurrentToken().getLexeme(),getCurrentToken().getLineNumber());
+		case TOK_CHAR_LITERAL:
+			return new TinyLangAst(TinyLangAstNodes.AST_CHAR_LITERAL_NODE,getCurrentToken().getLexeme(),getCurrentToken().getLineNumber());
+		//identifier or function call 
+		case TOK_IDENTIFIER:
+			getNextToken();
+			if(getCurrentToken().getTokenType()==TokenType.TOK_LEFT_ROUND_BRACKET){
+				getPrevToken();
+				return parseFunctionCall();	
+			}
+			else {
+				getPrevToken();
+				return new TinyLangAst(TinyLangAstNodes.AST_IDENTIFIER_NODE,getCurrentToken().getLexeme(),getCurrentToken().getLineNumber());
+			}
+		case TOK_LEFT_ROUND_BRACKET:
+			return parseSubExpression();
+		case TOK_ADDITIVE_OP:
+		case TOK_NOT:
+			return parseUnary();
+		default:
+			throw new java.lang.RuntimeException("unexpected "+getCurrentToken().getLexeme()+" in line"+getCurrentToken().getLineNumber());
+		}
+	}
+	private TinyLangAst parseSubExpression() {
+		//expect left round bracket
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_LEFT_ROUND_BRACKET)
+			throw new java.lang.RuntimeException("unexpected "+getCurrentToken().getLexeme()+" in line"+getCurrentToken().getLineNumber());
+		//get next token
+		getNextToken();
+		//expect expression
+		TinyLangAst expressionTree = parseExpression();
+		
+		//get next token
+		getNextToken();
+		//expect right round bracket
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_RIGHT_ROUND_BRACKET)
+			throw new java.lang.RuntimeException("unexpected "+getCurrentToken().getLexeme()+" in line"+getCurrentToken().getLineNumber());
+		//return expression tree
+		return expressionTree;
+	}
+	private TinyLangAst parseUnary() {
+
+		//expect not or additive
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_ADDITIVE_OP && getCurrentToken().getTokenType()!=TokenType.TOK_NOT)
+			throw new java.lang.RuntimeException("unexpected "+getCurrentToken().getLexeme()+" in line"+getCurrentToken().getLineNumber());
+		//create unary tree with unary operator 
+		TinyLangAst unaryTree = new TinyLangAst(TinyLangAstNodes.AST_UNARY_OPERATOR_NODE,getCurrentToken().getLexeme(),getCurrentToken().getLineNumber());
+		//get next token
+		getNextToken();
+		//expect expression
+		unaryTree.addSubtree(parseExpression());
+		
+		return unaryTree;
+	}
+	private TinyLangAst parseFunctionCall() { 
+		TinyLangAst functionCallTree = new TinyLangAst(TinyLangAstNodes.AST_FUNCTION_CALL_NODE,getCurrentToken().getLineNumber());
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_IDENTIFIER)
+			throw new java.lang.RuntimeException("unexpected "+getCurrentToken().getLexeme()+" in line"+getCurrentToken().getLineNumber());
+		//add identifier node
+		functionCallTree.addChild(TinyLangAstNodes.AST_IDENTIFIER_NODE,getCurrentToken().getLexeme(),getCurrentToken().getLineNumber());		
+		getNextToken();
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_LEFT_ROUND_BRACKET)
+			//not as expected
+			throw new java.lang.RuntimeException("unexpected "+getCurrentToken().getLexeme()+" in line"+getCurrentToken().getLineNumber());
+		
+		getNextToken();
+		//if not right round bracket -> we have parameters 
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_RIGHT_ROUND_BRACKET){
+			functionCallTree.addSubtree(parseActualParams());
+			//get next token (expected round bracket in next token)
+			getNextToken();
+		}
+		else
+			//add parameter node
+			functionCallTree.addChild(TinyLangAstNodes.AST_ACTUAL_PARAMETERS_NODE,getCurrentToken().getLineNumber());
+
+
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_RIGHT_ROUND_BRACKET)
+			//not as expected
+			throw new java.lang.RuntimeException("expected right round bracket,) ,"+getCurrentToken().getLexeme()+" in line"+getCurrentToken().getLineNumber());	
+		return functionCallTree;
+	}
+	TinyLangAst parseActualParams() {
+		//parse expression
+		TinyLangAst actualParamsTree = new TinyLangAst(TinyLangAstNodes.AST_ACTUAL_PARAMETERS_NODE,getCurrentToken().getLineNumber());	
+		//add expression tree
+		actualParamsTree.addSubtree(parseExpression());
+		//get next token
+		getNextToken();
+
+		while(getCurrentToken().getTokenType()==TokenType.TOK_COMMA && getCurrentToken().getTokenType()!=TokenType.TOK_EOF )
+		{
+			//get next token
+			getNextToken();
+			actualParamsTree.addSubtree(parseExpression());
+			//get next token
+			getNextToken();
+		}
+		getPrevToken();
+		return actualParamsTree;
+	}
+	//parse formal parameters
+	TinyLangAst parseFormalParams() {
+		//parse expression
+		TinyLangAst formalParamsTree = new TinyLangAst(TinyLangAstNodes.AST_FORMAL_PARAMETERS_NODE,getCurrentToken().getLineNumber());	
+		//add formal param tree
+		formalParamsTree.addSubtree(parseFormalParam());
+		//get next token
+		getNextToken();
+
+		while(getCurrentToken().getTokenType()==TokenType.TOK_COMMA)
+		{
+			//get next token
+			getNextToken();
+			formalParamsTree.addSubtree(parseFormalParam());
+			//get next token
+			getNextToken();
+		}
+		getPrevToken();
+
+		return formalParamsTree;
+	}
+	//parse formal parameter
+	TinyLangAst parseFormalParam() {
+		//parse expression
+		TinyLangAst formalParamTree = new TinyLangAst(TinyLangAstNodes.AST_FORMAL_PARAMETER_NODE,getCurrentToken().getLineNumber());	
+		//expect identifier
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_IDENTIFIER)
+			throw new java.lang.RuntimeException(getCurrentToken().getLexeme()+" in line "+getCurrentToken().getLineNumber()+" is not a valid parameter name");
+		//add identifier node
+		Token identifier = getCurrentToken();
+		//get next token
+		getNextToken();
+		// expect :
+		if(getCurrentToken().getTokenType()!=TokenType.TOK_COLON)
+			//not as expected
+			throw new java.lang.RuntimeException("unexpected "+getCurrentToken().getLexeme()+" in line"+getCurrentToken().getLineNumber());
+		//get next token
+		getNextToken();
+		formalParamTree.addSubtree(parseType());	
+		formalParamTree.addChild(TinyLangAstNodes.AST_IDENTIFIER_NODE,identifier.getLexeme(),identifier.getLineNumber());
+		return formalParamTree;
+	}
+	public TinyLangAst getTinyLangAbstraxSyntaxTree() {
+		return tinyLangProgramAbstractSyntaxTree;
+	}
+}
+\end{lstlisting}
+
+
+\section{XML generation}
+\begin{lstlisting}[basicstyle=\miniscule,caption=Generating an XML representation of AST,label=listing:xmlGeneration]
+package tinylangvisitor;
+import tinylangparser.TinyLangAst;
+import tinylangparser.TinyLangAstNodes;
+public class XmlGeneration implements Visitor {
+	private String xmlRepresentation = "";
+	private int indentation = 0;
+	private String getCurrentIndentationLevel() {
+		String indentation = "";
+		for(int i=0;i<this.indentation;i++)
+			//add indentation
+			indentation+="    ";//(char)0x09;
+		return indentation;
+	}
+	//method which runs statement type visit method based on node type
+	public void visitStatement(TinyLangAst tinyLangAst) {
+		switch(tinyLangAst.getAssociatedNodeType()) {
+		case AST_VARIABLE_DECLARATION_NODE:
+			visitVariableDeclarationNode(tinyLangAst);
+			break;
+		case AST_ASSIGNMENT_NODE:
+			visitAssignmentNode(tinyLangAst);
+			break;
+		case AST_PRINT_STATEMENT_NODE:
+			visitPrintStatementNode(tinyLangAst);
+			break;
+		case AST_IF_STATEMENT_NODE:
+			visitIfStatementNode(tinyLangAst);
+			break;
+		case AST_FOR_STATEMENT_NODE:
+			visitForStatementNode(tinyLangAst);
+			break;
+		case AST_WHILE_STATEMENT_NODE:
+			visitWhileStatementNode(tinyLangAst);
+			break;
+		case AST_RETURN_STATEMENT_NODE:
+			visitReturnStatementNode(tinyLangAst);
+			break;
+		case AST_FUNCTION_DECLARATION_NODE:
+			visitFunctionDeclarationNode(tinyLangAst);
+			break;
+		case AST_BLOCK_NODE:
+			visitBlockNode(tinyLangAst);
+			break;
+		default:
+			throw new java.lang.RuntimeException("Unrecognised statement of  type "+tinyLangAst.getAssociatedNodeType());
+		}	
+	}
+	private void visitExpression(TinyLangAst tinyLangAst){
+		switch(tinyLangAst.getAssociatedNodeType()) {
+		case AST_BINARY_OPERATOR_NODE:
+			visitBinaryOperatorNode(tinyLangAst);
+			break;
+		case AST_UNARY_OPERATOR_NODE:
+			visitUnaryOperatorNode(tinyLangAst);
+			break;
+		case AST_BOOLEAN_LITERAL_NODE:
+			visitBooleanLiteralNode(tinyLangAst);
+			break;
+		case AST_INTEGER_LITERAL_NODE:
+			visitIntegerLiteralNode(tinyLangAst);
+			break;
+		case AST_FLOAT_LITERAL_NODE:
+			visitFloatLiteralNode(tinyLangAst);
+			break;
+		case AST_CHAR_LITERAL_NODE:
+			visitCharLiteralNode(tinyLangAst);
+			break;
+		case AST_IDENTIFIER_NODE:
+			visitIdentifierNode(tinyLangAst);
+			break;
+		case AST_FUNCTION_CALL_NODE:
+			visitFunctionCallNode(tinyLangAst);
+			break;
+		default:
+			throw new java.lang.RuntimeException("Unrecognised expression node of type "+tinyLangAst.getAssociatedNodeType());
+		}	
+	}
+	public XmlGeneration(TinyLangAst tinyLangAst) {
+		visitTinyLangProgram(tinyLangAst);
+	}
+
+	@Override
+	public void visitTinyLangProgram(TinyLangAst tinyLangAst) {
+		xmlRepresentation+=getCurrentIndentationLevel()+"<TinyLangProgram>\n";
+		//indent
+		indentation++;
+		for(TinyLangAst child : tinyLangAst.getChildren())
+			visitStatement(child);
+		//unindent
+		indentation--;
+		xmlRepresentation+=getCurrentIndentationLevel()+"<\\TinyLangProgram>\n";		
+	}
+	@Override
+	public void visitVariableDeclarationNode(TinyLangAst tinyLangAst) {
+	
+		xmlRepresentation+=getCurrentIndentationLevel()+"<variable declaration>\n";
+		//indent
+		indentation++;
+		//visit children
+		//add function identifier
+		xmlRepresentation+=getCurrentIndentationLevel()+"<id type=\""+tinyLangAst.getChildren().get(0).getAssociatedNodeValue()+"\">"+tinyLangAst.getChildren().get(1).getAssociatedNodeValue()+"<\\id>\n";
+		//add expression tag
+		visitExpression(tinyLangAst.getChildren().get(2));
+		//unindent
+		indentation--;
+		xmlRepresentation+=getCurrentIndentationLevel()+"<\\variable declaration>\n";	
+	}
+
+	@Override
+	public void visitPrintStatementNode(TinyLangAst tinyLangAst) {
+		xmlRepresentation+=getCurrentIndentationLevel()+"<print statement>\n";
+		//indent
+		indentation++;
+		visitExpression(tinyLangAst.getChildren().get(0));
+		//unindent
+		indentation--;
+		xmlRepresentation+=getCurrentIndentationLevel()+"<\\print statement>\n";			
+	}
+	@Override
+	public void visitIfStatementNode(TinyLangAst tinyLangAst) {
+		xmlRepresentation+=getCurrentIndentationLevel()+"<if statement>\n";
+		//indent
+		indentation++;
+		//expect first child to be expression
+		visitExpression(tinyLangAst.getChildren().get(0));
+		//expect second child to be block 
+		visitBlockNode(tinyLangAst.getChildren().get(1));
+		//check if we have else block
+		if(tinyLangAst.getChildren().size()==3)
+			visitBlockNode(tinyLangAst.getChildren().get(2));	
+		//unindent
+		indentation--;
+		xmlRepresentation+=getCurrentIndentationLevel()+"<\\if statement>\n";			
+	}
+	@Override
+	public void visitForStatementNode(TinyLangAst tinyLangAst) {
+		//add for statement tag
+		xmlRepresentation+=getCurrentIndentationLevel()+"<for statement>\n";
+		//indent
+		indentation++;
+		//expect first child is variable declaration or expression
+		if(tinyLangAst.getChildren().get(0).getAssociatedNodeType()==TinyLangAstNodes.AST_VARIABLE_DECLARATION_NODE)
+			visitVariableDeclarationNode(tinyLangAst.getChildren().get(0));	
+	
+		else 
+			visitExpression(tinyLangAst.getChildren().get(0));
+		
+		//second child is assignment or block or expression
+		if(tinyLangAst.getChildren().get(1).getAssociatedNodeType()==TinyLangAstNodes.AST_ASSIGNMENT_NODE)
+			visitAssignmentNode(tinyLangAst.getChildren().get(1));
+		else if(tinyLangAst.getChildren().get(1).getAssociatedNodeType()==TinyLangAstNodes.AST_BLOCK_NODE)
+			visitBlockNode(tinyLangAst.getChildren().get(1));
+		else 
+			visitExpression(tinyLangAst.getChildren().get(1));
+		//if we have 3 or more children 
+		if(tinyLangAst.getChildren().size()>=3 && tinyLangAst.getChildren().get(2).getAssociatedNodeType()==TinyLangAstNodes.AST_ASSIGNMENT_NODE)
+			visitAssignmentNode(tinyLangAst.getChildren().get(2));
+		else if(tinyLangAst.getChildren().size()>=3 && tinyLangAst.getChildren().get(2).getAssociatedNodeType()==TinyLangAstNodes.AST_BLOCK_NODE)
+			visitBlockNode(tinyLangAst.getChildren().get(2));
+		else
+			throw new java.lang.RuntimeException("unexpected node of type "+tinyLangAst.getChildren().get(2).getAssociatedNodeType());
+		//if we have 4 children
+		if(tinyLangAst.getChildren().size()==4) 
+			visitBlockNode(tinyLangAst.getChildren().get(3));
+		indentation--;
+		xmlRepresentation+=getCurrentIndentationLevel()+"<\\VariableDeclaration>\n";			
+	}
+	@Override
+	public void visitWhileStatementNode(TinyLangAst tinyLangAst) {
+		xmlRepresentation+=getCurrentIndentationLevel()+"<while statement>\n";
+		//indent
+		indentation++;
+		//expected 2 children expression and nodes
+		if(tinyLangAst.getChildren().size()!=2)
+			throw new java.lang.RuntimeException("while statement node has "+tinyLangAst.getChildren().size()+" expected 2");
+		if(tinyLangAst.getChildren().get(1).getAssociatedNodeType()!=TinyLangAstNodes.AST_BLOCK_NODE)
+			throw new java.lang.RuntimeException("second child of while statement is "+tinyLangAst.getChildren().get(1).getAssociatedNodeType()+" expected AST_BLOCK_NODE");
+		//visit expression and block
+		visitExpression(tinyLangAst.getChildren().get(0));
+		visitBlockNode(tinyLangAst.getChildren().get(1));
+		indentation--;
+		xmlRepresentation+=getCurrentIndentationLevel()+"<\\while statement>\n";			
+	}
+	@Override
+	public void visitReturnStatementNode(TinyLangAst tinyLangAst) {
+		xmlRepresentation+=getCurrentIndentationLevel()+"<return statement>\n";
+		//indent
+		indentation++;
+		//visit expression
+		visitExpression(tinyLangAst.getChildren().get(0));
+		indentation--;
+		xmlRepresentation+=getCurrentIndentationLevel()+"<\\return statement>\n";			
+	}
+	@Override
+	public void visitFunctionDeclarationNode(TinyLangAst tinyLangAst) {
+		xmlRepresentation+=getCurrentIndentationLevel()+"<function declaration>\n";
+		//expected 4 children of types identifier,formal parameters,type and block
+		//indent
+		indentation++;
+		//add function identifier
+		xmlRepresentation+=getCurrentIndentationLevel()+"<id type=\""+tinyLangAst.getChildren().get(0).getAssociatedNodeValue()+"\">"+tinyLangAst.getChildren().get(1).getAssociatedNodeValue()+"<\\id>\n";
+		//add parameters
+		xmlRepresentation+=getCurrentIndentationLevel()+"<parameters>\n";
+			indentation++;
+			for(TinyLangAst child : tinyLangAst.getChildren().get(2).getChildren()) {
+				xmlRepresentation+=getCurrentIndentationLevel()+"<parameters>\n";
+				indentation++;
+				xmlRepresentation+=getCurrentIndentationLevel()+"<id type=\""+child.getChildren().get(0).getAssociatedNodeValue()+">"+child.getChildren().get(1).getAssociatedNodeValue()+"<\\id>\n";
+				indentation--;
+				xmlRepresentation+=getCurrentIndentationLevel()+"<\\parameters>\n";
+			}
+			indentation--;
+		xmlRepresentation+=getCurrentIndentationLevel()+"<\\parameters>\n";
+
+			visitBlockNode(tinyLangAst.getChildren().get(3));
+		//unindent
+		indentation--;
+		xmlRepresentation+=getCurrentIndentationLevel()+"<\\function declaration>\n";			
+				
+	}
+	
+	@Override
+	public void visitFunctionCallNode(TinyLangAst tinyLangAst) {
+		xmlRepresentation+=getCurrentIndentationLevel()+"<function call>\n";
+		//expected 4 children of types identifier,formal parameters,type and block
+		//indent
+		indentation++;
+		//add function identifier
+		visitIdentifierNode(tinyLangAst.getChildren().get(0));
+		//add parameters
+		xmlRepresentation+=getCurrentIndentationLevel()+"<parameters>\n";
+			indentation++;
+			for(TinyLangAst child : tinyLangAst.getChildren().get(1).getChildren()) {
+				xmlRepresentation+=getCurrentIndentationLevel()+"<actual parameter>\n";
+				indentation++;
+				visitExpression(child);
+				indentation--;
+				xmlRepresentation+=getCurrentIndentationLevel()+"<\\actual parameter>\n";
+			}
+			indentation--;
+		xmlRepresentation+=getCurrentIndentationLevel()+"<\\parameters>\n";
+
+		//unindent
+		indentation--;
+		xmlRepresentation+=getCurrentIndentationLevel()+"<\\function call>\n";		
+				
+	}
+	@Override
+	public void visitBlockNode(TinyLangAst tinyLangAst) {
+		if(tinyLangAst.getAssociatedNodeType()==TinyLangAstNodes.AST_ELSE_BLOCK_NODE)
+			xmlRepresentation+=getCurrentIndentationLevel()+"<else block>\n";			
+		else
+			xmlRepresentation+=getCurrentIndentationLevel()+"<block>\n";
+		//indent
+		indentation++;
+		//children are statements
+		for(TinyLangAst child:tinyLangAst.getChildren())
+			visitStatement(child);
+		indentation--;
+		if(tinyLangAst.getAssociatedNodeType()==TinyLangAstNodes.AST_ELSE_BLOCK_NODE)
+			xmlRepresentation+=getCurrentIndentationLevel()+"<\\else block>\n";			
+		else 
+			xmlRepresentation+=getCurrentIndentationLevel()+"<\\block>\n";			
+				
+	}
+	@Override
+	public void visitBinaryOperatorNode(TinyLangAst tinyLangAst) {
+		xmlRepresentation+=getCurrentIndentationLevel()+"<binary Op=\""+tinyLangAst.getAssociatedNodeValue()+"\">\n";
+		//expected binary operator -> 2 children expression
+		if(tinyLangAst.getChildren().size()!=2)
+			throw new java.lang.RuntimeException("binary node has "+tinyLangAst.getChildren().size()+" child(ren) expected 2");
+		//indent
+		indentation++;
+		//visit expression
+		visitExpression(tinyLangAst.getChildren().get(0));
+		visitExpression(tinyLangAst.getChildren().get(1));
+
+		indentation--;
+		xmlRepresentation+=getCurrentIndentationLevel()+"<\\binary>\n";			
+	}
+	@Override
+	public void visitUnaryOperatorNode(TinyLangAst tinyLangAst) {
+		xmlRepresentation+=getCurrentIndentationLevel()+"<unary Op=\""+tinyLangAst.getAssociatedNodeValue()+"\">\n";
+		//expected unary expression node -> one child
+		if(tinyLangAst.getChildren().size()!=1)
+			throw new java.lang.RuntimeException("unary node has "+tinyLangAst.getChildren().size()+" children expected 1");
+		//indent
+		indentation++;
+		//visit expression
+			visitExpression(tinyLangAst.getChildren().get(0));
+		//unindent
+		indentation--;
+		xmlRepresentation+=getCurrentIndentationLevel()+"<\\unary>\n";				
+	}
+	@Override
+	public void visitBooleanLiteralNode(TinyLangAst tinyLangAst) {
+		xmlRepresentation+=getCurrentIndentationLevel()+"<boolean literal>"+tinyLangAst.getAssociatedNodeValue()+"<\\boolean literal>\n";			
+	}
+	@Override
+	public void visitIntegerLiteralNode(TinyLangAst tinyLangAst) {
+		xmlRepresentation+=getCurrentIndentationLevel()+"<integer literal>"+tinyLangAst.getAssociatedNodeValue()+"<\\integer literal>\n";	
+	}
+	@Override
+	public void visitFloatLiteralNode(TinyLangAst tinyLangAst) {
+		xmlRepresentation+=getCurrentIndentationLevel()+"<float literal>"+tinyLangAst.getAssociatedNodeValue()+"<\\float literal>\n";		
+	}
+	@Override
+	public void visitCharLiteralNode(TinyLangAst tinyLangAst) {
+		xmlRepresentation+=getCurrentIndentationLevel()+"<char literal>"+tinyLangAst.getAssociatedNodeValue()+"<\\char literal>\n";			
+	}
+
+	@Override
+	public void visitIdentifierNode(TinyLangAst tinyLangAst) {
+		xmlRepresentation+=getCurrentIndentationLevel()+"<id>"+tinyLangAst.getAssociatedNodeValue()+"<\\id>\n";							
+	}
+	
+	public void printXmlTree() {
+		System.out.println(xmlRepresentation);
+	}
+//	@Override
+//	public void visitElseBlockNode(TinyLangAst tinyLangAst) {
+//		xmlRepresentation+=getCurrentIndentationLevel()+"<else block>\n";			
+//		//indent
+//		indentation++;
+//		//children are statements
+//		for(TinyLangAst child:tinyLangAst.getChildren())
+//			visitStatement(child);
+//		indentation--;
+//		xmlRepresentation+=getCurrentIndentationLevel()+"<\\else block>\n";			
+//				
+//	}
+//
+
+	public void visitAssignmentNode(TinyLangAst tinyLangAst) {		
+		xmlRepresentation+=getCurrentIndentationLevel()+"<assignment>\n";			
+		indentation++;
+			//add identifier and expression tags
+			visitIdentifierNode(tinyLangAst.getChildren().get(0));
+			visitExpression(tinyLangAst.getChildren().get(0));
+		indentation--;
+		xmlRepresentation+=getCurrentIndentationLevel()+"<\\assignment>\n";					
+	}
+}
+\end{lstlisting}
+\section{Semantic Analyser}
+\begin{lstlisting}[basicstyle=\miniscule,caption=Function Signature,label=listing:functionsignature]
+package tinylangvisitor;
+import java.util.Objects;
+import java.util.Stack;
+import tinylangparser.Type;
+public class FunctionSignature {
+	private String functionName ="";
+	private int hashCode;
+	Stack<Type> parameterType = new Stack<Type>();
+	public FunctionSignature(String functionName,Stack<Type> parameterType) {
+		//set functionName
+		this.functionName=functionName;
+		//set parameter types stack
+		this.parameterType=parameterType;
+		//set hash
+		hashCode = Objects.hash(functionName,parameterType);
+	}
+    public String getFunctionName() {
+    	return functionName;
+    }
+    public Stack<Type> getParametersTypes(){
+    	return parameterType;
+    }
+	/*
+	 *functions that allows us to use classes 
+     *as map keys where 2 object keys are 
+     *equivalent iff they have same attribute values
+     *rather than same object address value
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        FunctionSignature that = (FunctionSignature) o;
+        return functionName.equals(that.functionName) && parameterType.equals(that.parameterType);
+    }
+    @Override
+    public int hashCode() {
+        return this.hashCode;
+    }
+}
+\end{lstlisting}
+\begin{lstlisting}[basicstyle=\miniscule,caption=Scope,label=listing:scope]
+package tinylangvisitor;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Stack;
+
+import tinylangparser.TinyLangAst;
+import tinylangparser.Type;
+public class Scope {
+	//Signature
+	//name binding  i.e. name |->  object e.g. variable,function etc
+	Map<String,Type> variableDeclaration = new HashMap<String,Type>();
+	Map<FunctionSignature,Type> functionDeclaration = new HashMap<FunctionSignature,Type>();
+	Map<FunctionSignature,Stack<String>> functionParameterNames = new HashMap<FunctionSignature,Stack<String>>();
+	Map<FunctionSignature,TinyLangAst> functionBlock= new HashMap<FunctionSignature,TinyLangAst>();
+
+	// map := variable ↦ value
+	Map<String,String> variableValues = new HashMap<String,String>();
+
+	//  map := function name ↦ value
+
+	public void addVariableDeclaration(String variableName,Type type) {
+		variableDeclaration.put(variableName, type);
+	}
+	//add function declaration
+	public void addFunctionDeclaration(FunctionSignature functionSignature,Type type) {
+		functionDeclaration.put(functionSignature, type);
+	}
+	public TinyLangAst getBlock(FunctionSignature functionSignature) {
+		return functionBlock.get(functionSignature);
+	}
+	public Stack<String> getParameterNames(FunctionSignature functionSignature) {
+		return functionParameterNames.get(functionSignature);
+	}
+	
+	
+	
+	//add value to variable x
+	public void addVariableValue(String x,String value) {
+		variableValues.put(x, value);
+	}
+	public void deleteVariable(String variableName) {
+		variableValues.remove(variableName);
+		variableDeclaration.remove(variableName);	
+	}
+	public void addFunctionParameterNames(FunctionSignature functionSignature, Stack<String> variableNames) {
+		functionParameterNames.put(functionSignature, variableNames);
+	}
+	public void addFunctionBlock(FunctionSignature functionSignature, TinyLangAst block) {
+		functionBlock.put(functionSignature, block);
+	}
+	
+	public boolean isFunctionAlreadyDefined(FunctionSignature functionSignature) {
+		return functionDeclaration.containsKey(functionSignature);
+	}
+	
+
+	//check if name is binded to an entity
+	public boolean isVariableNameBinded(String name) {
+		return variableDeclaration.containsKey(name);
+	}
+	//check if value of variable x is null (does not exists)
+	public boolean isVariableValueNull(String x) {
+		return variableValues.containsKey(x);
+	}
+	public Type getVariableType(String name) {
+		if(isVariableNameBinded(name))
+			return variableDeclaration.get(name);
+		else 
+			throw new java.lang.RuntimeException("entity with identifier "+name+" does not exist");
+	}
+	//get value associated with variable x
+	public String getVariableValue(String x) {
+		if(isVariableValueNull(x)) 
+			return variableValues.get(x);
+		else 
+			throw new java.lang.RuntimeException("entity with identifier "+x+" is associated with no value");	
+	}
+	public Type getFunctionType(FunctionSignature functionSignature) {
+		if(isFunctionAlreadyDefined(functionSignature))
+			return functionDeclaration.get(functionSignature);
+		else 
+			throw new java.lang.RuntimeException("function with identifier "+functionSignature.getFunctionName()
+												+" and type(s) "+functionSignature.getParametersTypes() +" does not exist");
+	}
+	public Map<FunctionSignature,Type> getFunctionDeclaration(){
+		return functionDeclaration;
+	}
+}
+\end{lstlisting}
+\begin{lstlisting}[basicstyle=\miniscule,caption=Symbol Table,label=listing:symboltable]
+package tinylangvisitor;
+import java.util.Stack;
+
+import tinylangparser.TinyLangAst;
+import tinylangparser.Type;
+public class SymbolTable {
+
+	//current function parameter values 
+	private Stack<Scope> scopes = new Stack<Scope>();
+	public void push() {
+		Scope newScope = new Scope();
+		scopes.add(newScope);
+	}
+	public void insertVariableDeclaration(String name,Type type) {
+		getCurrentScope().addVariableDeclaration(name, type);
+	}
+	//add value to variable x
+	public void insertVariableValue(String x,String value) {
+		getCurrentScope().addVariableValue(x, value);
+	}
+	public void insertFunctionDeclaration(FunctionSignature functionSignature,Type type) {
+		getCurrentScope().addFunctionDeclaration(functionSignature, type);
+	}
+	public void insertFunctionParameterNames(FunctionSignature functionSignature, Stack<String> functionParameterNames) {
+		getCurrentScope().addFunctionParameterNames(functionSignature, functionParameterNames);
+	}
+	public void insertFunctionBlock(FunctionSignature functionSignature, TinyLangAst functionBlock) {
+		getCurrentScope().addFunctionBlock(functionSignature, functionBlock);
+		
+	}
+	public void deleteVariable(String name) {
+		getCurrentScope().deleteVariable(name);
+	}
+	
+	public boolean isVariableNameBinded(String name) {
+		//check is identifier is already binded in current scope
+		return getCurrentScope().isVariableNameBinded(name);
+	}
+	public Type getVariableType(String name) {
+		return getCurrentScope().getVariableType(name);
+	}
+	public void pop(){
+		scopes.pop();
+	}
+	public Stack<Scope> getScopes(){
+		return scopes;	
+	}
+	public Scope getCurrentScope() {
+		return scopes.peek();
+	}
+}
+\end{lstlisting}
+\begin{lstlisting}[basicstyle=\miniscule,caption=Semantic Analyser,label=listing:semanticanalyser]
+package tinylangvisitor;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Stack;
+
+import tinylangparser.TinyLangAst;
+import tinylangparser.TinyLangAstNodes;
+import tinylangparser.Type;
+
+public class SemanticAnalyser implements Visitor {
+	/**
+	 * Constructor for semantic analysis,
+	 * pass in AST of TinyLang program
+	 * to semantically analyse it.
+	 * @param programTree
+	 */
+	public SemanticAnalyser(TinyLangAst programTree) {
+		//create global scope
+		st.push();
+		//traverse program
+		visitTinyLangProgram(programTree);
+		//confirmation
+		st.pop();
+		System.out.println("Note: program is semantically correct");	
+	}
+	//this is used to analyse types of expressions
+	private Type currentExpressionType;
+	//set symbol table
+	private SymbolTable st = new SymbolTable();
+	//get a hold of current function types
+	Stack<Type> function = new Stack<Type>();
+	//get a hold of current function parameters
+	Map<String,Type> currentFunctionParameters = new HashMap<String,Type>();
+
+	//Map<String,Type> currentFunctionParameters = new HashMap<String,Type>();
+	
+	//method which runs statement visit method based on node type
+	public void visitStatement(TinyLangAst tinyLangAst) {
+		switch(tinyLangAst.getAssociatedNodeType()) {
+			case AST_VARIABLE_DECLARATION_NODE:
+				visitVariableDeclarationNode(tinyLangAst);
+				break;
+			case AST_ASSIGNMENT_NODE:
+				visitAssignmentNode(tinyLangAst);
+				break;
+			case AST_PRINT_STATEMENT_NODE:
+				visitPrintStatementNode(tinyLangAst);
+				break;
+			case AST_IF_STATEMENT_NODE:
+				visitIfStatementNode(tinyLangAst);
+				break;
+			case AST_FOR_STATEMENT_NODE:
+				visitForStatementNode(tinyLangAst);
+				break;
+			case AST_WHILE_STATEMENT_NODE:
+				visitWhileStatementNode(tinyLangAst);
+				break;
+			case AST_RETURN_STATEMENT_NODE:
+				visitReturnStatementNode(tinyLangAst);
+				break;
+			case AST_FUNCTION_DECLARATION_NODE:
+				visitFunctionDeclarationNode(tinyLangAst);
+				break;
+			case AST_BLOCK_NODE:
+				visitBlockNode(tinyLangAst);
+				break;
+			default:
+				throw new java.lang.RuntimeException("Unrecognised statement of  type "+tinyLangAst.getAssociatedNodeType());
+			}	
+		}
+	//visit expression based on node type 
+	private void visitExpression(TinyLangAst tinyLangAst){
+		switch(tinyLangAst.getAssociatedNodeType()) {
+		case AST_BINARY_OPERATOR_NODE:
+			visitBinaryOperatorNode(tinyLangAst);
+			break;
+		case AST_UNARY_OPERATOR_NODE:
+			visitUnaryOperatorNode(tinyLangAst);
+			break;
+		case AST_BOOLEAN_LITERAL_NODE:
+			visitBooleanLiteralNode(tinyLangAst);
+			break;
+		case AST_INTEGER_LITERAL_NODE:
+			visitIntegerLiteralNode(tinyLangAst);
+			break;
+		case AST_FLOAT_LITERAL_NODE:
+			visitFloatLiteralNode(tinyLangAst);
+			break;
+		case AST_CHAR_LITERAL_NODE:
+			visitCharLiteralNode(tinyLangAst);
+			break;
+		case AST_IDENTIFIER_NODE:
+			visitIdentifierNode(tinyLangAst);
+			break;
+		case AST_FUNCTION_CALL_NODE:
+			visitFunctionCallNode(tinyLangAst);
+			break;
+		default:
+			throw new java.lang.RuntimeException("Unrecognised expression node of type "+tinyLangAst.getAssociatedNodeType());
+		}	
+	}
+	@Override
+	public void visitTinyLangProgram(TinyLangAst tinyLangAst) {
+		//traverse all statements
+		for(TinyLangAst statement : tinyLangAst.getChildren()) 
+			//visit statement
+			visitStatement(statement);
+	}
+
+	@Override
+	public void visitVariableDeclarationNode(TinyLangAst tinyLangAst) {
+		//get expression
+		TinyLangAst identifier = tinyLangAst.getChildren().get(1);
+		TinyLangAst expression = tinyLangAst.getChildren().get(2);
+		//if identifier is already declared -> ERROR
+		if(st.isVariableNameBinded(identifier.getAssociatedNodeValue())==true)
+			throw new java.lang.RuntimeException("variable "+identifier.getAssociatedNodeValue()+" in line "
+															+identifier.getLineNumber()+" was already declared previously");	
+		//visit expression -> update current expression type
+		visitExpression(expression);
+						
+		/* type checking */
+		//we allow type(variable)=float and type(expression)=int (since int can resolve to float)
+		Type varType = Type.valueOf(tinyLangAst.getChildren().get(0).getAssociatedNodeValue());
+		if(varType==Type.FLOAT && getCurrentExpressionType()==Type.INTEGER) 
+			//name binding
+			st.insertVariableDeclaration(identifier.getAssociatedNodeValue(), varType);
+		else if(varType==getCurrentExpressionType())
+			//name binding
+			st.insertVariableDeclaration(identifier.getAssociatedNodeValue(), varType);
+		else
+			throw new java.lang.RuntimeException("type mismatch, identifier in line"
+												+identifier.getLineNumber()
+												+"of type"+varType
+												+" and expression in line"
+												+expression.getLineNumber()
+												+" of type"+getCurrentExpressionType());
+	}
+
+	@Override
+	public void visitAssignmentNode(TinyLangAst tinyLangAst) {
+		//get identifier name
+		String variableName = tinyLangAst.getChildren().get(0).getAssociatedNodeValue();
+		//visit expression
+		TinyLangAst expression = tinyLangAst.getChildren().get(1);
+		//get a hold of all scopes
+		Stack<Scope> scopes  = st.getScopes();
+		int i = 0;
+		/*
+		 * start traversing from inner scope to outer scope to find in
+		 * which innermost scope variable is declared
+		 */
+		for(i=scopes.size()-1;i>=0;i--) {
+			if(scopes.get(i).isVariableNameBinded(variableName))
+				break;
+		}
+		if(i<0)
+			throw new java.lang.RuntimeException("identifier "+variableName+" was never declared");
+		//obtain type from scope 
+		Type type = scopes.get(i).getVariableType(variableName);
+		//visit expression & update the current expression type
+		visitExpression(expression);
+		
+		//handle assignment type mismatch
+		
+		//allow integer to resolve to float
+		if(type==Type.FLOAT && getCurrentExpressionType()==Type.INTEGER);
+		else if(type!=getCurrentExpressionType())
+			throw new java.lang.RuntimeException("type mismatch : variable "+variableName
+															+" in line "
+															+  tinyLangAst.getChildren()
+															.get(0).getLineNumber()
+															+ " of type "+type.toString()
+															+ "assigned to expression of type"
+															+ getCurrentExpressionType().toString());
+	}
+
+	@Override
+	public void visitPrintStatementNode(TinyLangAst tinyLangAst) {
+		//visit expression -> update current expression type
+		visitExpression(tinyLangAst.getChildren().get(0));
+	}
+
+	@Override
+	public void visitIfStatementNode(TinyLangAst tinyLangAst) {
+		//get expression
+		TinyLangAst expression = tinyLangAst.getChildren().get(0);
+		//visit expression and update expression current type
+		visitExpression(expression);
+		//check that expression is boolean
+		if(getCurrentExpressionType()!=Type.BOOL)
+			throw new java.lang.RuntimeException("if condition in line "
+												+tinyLangAst.getLineNumber()
+												+" is not a predicate expression");
+		//visit if block 
+		visitBlockNode(tinyLangAst.getChildren().get(1));
+		//if exists an else block visit it
+		if(tinyLangAst.getChildren().size()==3)
+			visitBlockNode(tinyLangAst.getChildren().get(2));
+	}
+
+	@Override
+	public void visitForStatementNode(TinyLangAst tinyLangAst) {
+		//first child is variable declaration or expression
+		if(tinyLangAst.getChildren().get(0).getAssociatedNodeType()==TinyLangAstNodes.AST_VARIABLE_DECLARATION_NODE)
+			visitVariableDeclarationNode(tinyLangAst.getChildren().get(0));
+		else
+			visitExpression(tinyLangAst.getChildren().get(0));
+		
+		//second child is assignment or block or expression
+		if(tinyLangAst.getChildren().get(1).getAssociatedNodeType()==TinyLangAstNodes.AST_ASSIGNMENT_NODE)
+			visitAssignmentNode(tinyLangAst.getChildren().get(1));
+		else if(tinyLangAst.getChildren().get(1).getAssociatedNodeType()==TinyLangAstNodes.AST_BLOCK_NODE)
+			visitBlockNode(tinyLangAst.getChildren().get(1)); 
+		else
+			visitExpression(tinyLangAst.getChildren().get(1));
+		
+		//if we have 3 children
+		//third child is assignment or block
+		if(tinyLangAst.getChildren().size()==3&&tinyLangAst.getChildren().get(2).getAssociatedNodeType()==TinyLangAstNodes.AST_ASSIGNMENT_NODE)
+			visitAssignmentNode(tinyLangAst.getChildren().get(2));
+		else if(tinyLangAst.getChildren().size()==3&&tinyLangAst.getChildren().get(2).getAssociatedNodeType()==TinyLangAstNodes.AST_BLOCK_NODE)
+			visitBlockNode(tinyLangAst.getChildren().get(2));
+		//if we have 4 children 
+		//fourth child is block
+		if(tinyLangAst.getChildren().size()==4)
+			visitBlockNode(tinyLangAst.getChildren().get(3));
+	}
+
+	@Override
+	public void visitWhileStatementNode(TinyLangAst tinyLangAst) {
+		//got a hold on expression condition
+		TinyLangAst expression  = tinyLangAst.getChildren().get(0);
+		//get a hold on block node
+		TinyLangAst	 block = tinyLangAst.getChildren().get(1);
+		//visit expression and update current value expression type 
+		visitExpression(expression);
+		//expect that the expression is a predicate
+		if(getCurrentExpressionType()!=Type.BOOL)
+			throw new java.lang.RuntimeException("expected while condition to be a predicate in line "+tinyLangAst.getLineNumber());
+		//visit block
+		visitBlockNode(block);
+	}
+
+	@Override
+	public void visitReturnStatementNode(TinyLangAst tinyLangAst) {
+		//get expression 
+		TinyLangAst expression = tinyLangAst.getChildren().get(0);
+		//visit expression and update current expression time
+		visitExpression(expression);
+		//we allow to return integer if function is of type float
+		if(!function.empty() && getCurrentExpressionType()==Type.INTEGER && function.peek()==Type.FLOAT);
+		//check that expression is has the same type as the function
+		else if(!function.empty() && getCurrentExpressionType()!=function.peek())
+			throw new java.lang.RuntimeException("return in line "
+					+tinyLangAst.getLineNumber()+" returns expression of type "+
+					getCurrentExpressionType()+" expected type "+function.peek());
+	}
+
+	@Override
+	public void visitFunctionDeclarationNode(TinyLangAst tinyLangAst) {
+		//get function type
+		Type functionType = Type.valueOf(tinyLangAst.getChildren().get(0).getAssociatedNodeValue());
+
+		//get function identifier
+		String functionName = tinyLangAst.getChildren().get(1).getAssociatedNodeValue();
+		
+		//get function parameter types 
+		Stack<Type> functionParameterTypes = new Stack<Type>();
+		//get stack of names to check for duplicate parameter names
+		Stack<String> functionParameterNames = new Stack<String>();
+		//add types
+		
+		//get current paramater name
+		TinyLangAst parameterName;
+		for(TinyLangAst formalParameterTypes : tinyLangAst.getChildren().get(2).getChildren()) { 
+			parameterName = formalParameterTypes.getChildren().get(1);
+			functionParameterTypes.push(Type.valueOf(
+					formalParameterTypes.getChildren()
+					.get(0).getAssociatedNodeValue()));
+			//if parameter name is duplicate throw exception
+			if(functionParameterNames.contains(parameterName.getAssociatedNodeValue()))
+				throw new java.lang.RuntimeException("function parameter name "+parameterName.getAssociatedNodeValue()+ 
+						" already defined in line "+parameterName.getLineNumber());
+			functionParameterNames.push(parameterName.getAssociatedNodeValue());
+		}
+
+		//check in all scopes that the function is not already defined
+		for(Scope scope : st.getScopes())
+			if(scope.isFunctionAlreadyDefined(new FunctionSignature(functionName, functionParameterTypes))) 
+				throw new java.lang.RuntimeException("function "+functionName+" in line "+tinyLangAst.getChildren().get(1).getLineNumber()+" with the same parameter types already defined previously");
+		//add function to st
+		st.insertFunctionDeclaration(new FunctionSignature(functionName,functionParameterTypes), functionType);
+		//record current function in stack
+		function.push(functionType);
+		//empty current function parameters
+		currentFunctionParameters.clear();
+		for(TinyLangAst formalParameter : tinyLangAst.getChildren().get(2).getChildren()) 
+			currentFunctionParameters.put(formalParameter.getChildren().get(1).getAssociatedNodeValue(),
+											Type.valueOf(formalParameter.getChildren()
+											.get(0).getAssociatedNodeValue()));
+		//visit block
+		visitBlockNode(tinyLangAst.getChildren().get(3));
+		//pop type
+		function.pop();
+		//check if function returns
+		if(!returns(tinyLangAst.getChildren().get(3)))
+			throw new java.lang.RuntimeException("function "+functionName+" in line "+tinyLangAst.getLineNumber()+" not expected to return");
+	}
+
+	@Override
+	public void visitFunctionCallNode(TinyLangAst tinyLangAst) {
+		//determine the signature of the function
+		Stack<Type> parameterTypes = new Stack<Type>();
+		String functionIdentifier = tinyLangAst.getChildren().get(0).getAssociatedNodeValue();
+		//identify the expressions and update  stack current expression types
+		for(TinyLangAst expression :tinyLangAst.getChildren().get(1).getChildren()) {
+			visitExpression(expression);
+			parameterTypes.push(getCurrentExpressionType());
+		}
+		Stack<Scope> scopes = st.getScopes();
+		int i;
+
+		for(i=scopes.size()-1;i>=0;i--)
+			if(scopes.get(i).isFunctionAlreadyDefined(new FunctionSignature(functionIdentifier,parameterTypes)))
+				break;
+		
+		if(i<0)
+			throw new java.lang.RuntimeException("function "+functionIdentifier+" in line "+tinyLangAst.getLineNumber()+" is not defined");
+		
+		//if defined set current expression type to return value of the function
+		setCurrentExpressionType(scopes.get(i).getFunctionType(new FunctionSignature(functionIdentifier,parameterTypes)));
+	}
+
+	@Override
+	public void visitBlockNode(TinyLangAst tinyLangAst) {
+		//create new scope 
+		st.push();
+		//add parameters of functions if any in scope
+		for(String variableName:currentFunctionParameters.keySet()) 
+			st.insertVariableDeclaration(variableName,currentFunctionParameters.get(variableName));
+		//clear parameter map
+		currentFunctionParameters.clear();
+		//traverse statements in block
+		for(TinyLangAst statement:tinyLangAst.getChildren())
+			visitStatement(statement);
+		//visit statements in block
+		//end scope
+		st.pop();
+	}
+
+//	@Override
+//	public void visitElseBlockNode(TinyLangAst tinyLangAst) {
+//		visitBlockNode(tinyLangAst);
+//	}
+
+	@Override
+	public void visitBinaryOperatorNode(TinyLangAst tinyLangAst) {
+		//get operator 
+		String operator = tinyLangAst.getAssociatedNodeValue();
+		//get left node  (left operand)
+		TinyLangAst leftOperand = tinyLangAst.getChildren().get(0);
+		//visit expression to update current char type
+		visitExpression(leftOperand);
+		//obtain the type of the left operand
+		Type leftOperandType = getCurrentExpressionType();
+		
+		//REDO for right node (right operand)
+		//get left node  (left operand)
+		TinyLangAst rightOperand = tinyLangAst.getChildren().get(1);
+		//visit expression to update current char type
+		visitExpression(rightOperand);
+		//obtain the type of the left operand
+		Type rightOperandType = getCurrentExpressionType();
+		
+		/* 
+		 * Operators 
+		 * 
+		 * Operators 'and | 'or' must have operands of type bool
+		 * 
+		 * Operator '+' | '-' | '/' | '*' | '<' | '>' | '<=' | '>=' work on numeric operators  
+		 *
+		 * Operators '==' | '!=' operates on any 2 operands of the same type both numeric or both boolean or both char
+		 */
+		if(operator.equals("and")||operator.equals("or")) {
+			if(leftOperandType==Type.BOOL && rightOperandType==Type.BOOL)
+				setCurrentExpressionType(Type.BOOL);
+			
+			else 
+				throw new java.lang.RuntimeException("expected 2 operands of boolean type for operator "
+													 +operator+" in line "+tinyLangAst.getLineNumber());
+		}
+		else if(operator.equals("+")||operator.equals("-")||operator.equals("/")||operator.equals("*")){
+			if(!isNumericType(leftOperandType)||!isNumericType(rightOperandType))
+				throw new java.lang.RuntimeException("expected 2 operands of numeric type for operator "
+						 +operator+" in line "+tinyLangAst.getLineNumber());
+			
+			//if both are numeric if one of them is float the operator returns float otherwise returns integer
+			if(leftOperandType==Type.FLOAT||rightOperandType==Type.FLOAT)
+				setCurrentExpressionType(Type.FLOAT);
+			else 
+				setCurrentExpressionType(Type.INTEGER);
+		
+		}
+		else if(operator.equals("<")||operator.equals(">")||operator.equals("<=")||operator.equals(">=")) {
+			if(!isNumericType(leftOperandType)||!isNumericType(rightOperandType))
+				throw new java.lang.RuntimeException("expected 2 operands of numeric type for operator "
+						 +operator+" in line "+tinyLangAst.getLineNumber());
+			//if both are numeric set relation operators returns a boolean value
+			setCurrentExpressionType(Type.BOOL);
+		}
+	
+		else if(operator.equals("==")||operator.equals("!=")) {
+			//handle mismatch not that float and integers are
+			//both considered as one numerical type
+			if((leftOperandType!=rightOperandType) && 
+					(!isNumericType(leftOperandType)||!isNumericType(rightOperandType)))
+				throw new java.lang.RuntimeException("operand mismatch in line "+tinyLangAst.getLineNumber());
+			//if operands match 
+			setCurrentExpressionType(Type.BOOL);
+		}
+		else 
+			throw new java.lang.RuntimeException("binary operator "+operator+" unrecognised");
+	}
+
+	@Override
+	public void visitUnaryOperatorNode(TinyLangAst tinyLangAst) {
+		//unary operator
+		String operator = tinyLangAst.getAssociatedNodeValue();
+		//visit expression
+		visitExpression(tinyLangAst.getChildren().get(0));
+		//if current expression is numerical 
+		if(getCurrentExpressionType()==Type.INTEGER || getCurrentExpressionType()==Type.FLOAT) 
+			//check if operator is '-' | '+'
+			if(!operator.equals("-")&&!operator.equals("+")) 
+				throw new java.lang.RuntimeException("operator "+operator+" not allowed in front of numerical expression in line "+tinyLangAst.getChildren().get(0).getLineNumber());
+
+		else if(getCurrentExpressionType()==Type.BOOL ) 
+			//check if operator is not
+			if(!operator.equals("not")) 
+					throw new java.lang.RuntimeException("operator "+operator+" not allowed in front of predicate expreesion in line "+tinyLangAst.getChildren().get(0).getLineNumber());
+		else 
+			throw new java.lang.RuntimeException("unary operator "+operator+" is incompatible with expression in line "+tinyLangAst.getLineNumber());
+	}
+
+	@Override
+	public void visitIdentifierNode(TinyLangAst tinyLangAst) {
+		//find scope where identifier is defined
+		Stack<Scope> scopes = st.getScopes();
+		int i;
+		for(i=scopes.size()-1;i>=0;i--)
+			if(scopes.get(i).isVariableNameBinded(tinyLangAst.getAssociatedNodeValue()))
+				break;
+		if(i<0)
+			throw new java.lang.RuntimeException("variable name "+tinyLangAst.getAssociatedNodeValue()+" in line "+tinyLangAst.getLineNumber()+" is not defined");
+		setCurrentExpressionType(scopes.get(i).getVariableType(tinyLangAst.getAssociatedNodeValue()));
+	}
+
+	@Override
+	public void visitBooleanLiteralNode(TinyLangAst tinyLangAst) {
+		setCurrentExpressionType(Type.BOOL);
+	}
+
+	@Override
+	public void visitIntegerLiteralNode(TinyLangAst tinyLangAst) {
+		setCurrentExpressionType(Type.INTEGER);
+	}
+
+	@Override
+	public void visitFloatLiteralNode(TinyLangAst tinyLangAst) {
+		setCurrentExpressionType(Type.FLOAT);		
+	}
+
+	@Override
+	public void visitCharLiteralNode(TinyLangAst tinyLangAst) {
+		setCurrentExpressionType(Type.CHAR);
+	}
+	private boolean isNumericType(Type type) {
+		if(type ==Type.INTEGER||type ==Type.FLOAT)
+			return true;
+		else 
+			return false;
+		
+	}
+
+	private boolean returns(TinyLangAst tinyLangAst) {
+		//if given statement is a return statement 
+		//then obviously we have that the function returns
+		if(tinyLangAst.getAssociatedNodeType()==TinyLangAstNodes.AST_RETURN_STATEMENT_NODE)
+			return true;
+		//given a block we check if one of the statement returns
+		if(tinyLangAst.getAssociatedNodeType()==TinyLangAstNodes.AST_BLOCK_NODE) { 
+			for(TinyLangAst statement:tinyLangAst.getChildren())
+				if(returns(statement)) 
+					return true;
+		}
+		//given a block we check if one of the statement returns
+		if(tinyLangAst.getAssociatedNodeType()==TinyLangAstNodes.AST_ELSE_BLOCK_NODE) { 
+			for(TinyLangAst statement:tinyLangAst.getChildren())
+				if(returns(statement)) 
+					return true;
+		}
+		//if statement with an else block returns if both statement returns
+		if(tinyLangAst.getAssociatedNodeType()==TinyLangAstNodes.AST_IF_STATEMENT_NODE) 
+			//if statement has else block
+			if(tinyLangAst.getChildren().size()==3) {
+				//block and else block both return
+				return returns(tinyLangAst.getChildren().get(1)) && returns(tinyLangAst.getChildren().get(2));
+			}		
+		//if statement with an for block returns if both statement returns
+		if(tinyLangAst.getAssociatedNodeType()==TinyLangAstNodes.AST_FOR_STATEMENT_NODE) 
+				return returns(tinyLangAst.getChildren().get(tinyLangAst.getChildren().size()-1));
+		
+		//if statement with an else block returns if both statement returns
+		if(tinyLangAst.getAssociatedNodeType()==TinyLangAstNodes.AST_WHILE_STATEMENT_NODE) 
+			return returns(tinyLangAst.getChildren().get(1));
+		else
+			//in all other cases the function do not return 
+			return false;
+	}		
+	public void setCurrentExpressionType(Type currentExpressionType) {
+		this.currentExpressionType=currentExpressionType;
+	}
+	public Type getCurrentExpressionType() {
+		return currentExpressionType;
+}
+}
+\end{lstlisting}
+
+
+
+
+
+\section{Interpreter}
+\begin{lstlisting}[basicstyle=\miniscule,caption=Interpreter,label=listing:interpreter]
+package tinylangvisitor;
+import java.util.Stack;
+import tinylangparser.TinyLangAst;
+import tinylangparser.TinyLangAstNodes;
+import tinylangparser.Type;
+/**
+ * Class interpreter
+ * @author andre
+ *
+ */
+public class Interpreter implements Visitor{
+	//create a symbol table
+	private SymbolTable st = new SymbolTable();
+	//save current expression type for evaluation
+	private Type currentExpressionType;
+	//save current expression value for evaluation
+	private String currentExpressionValue;
+	
+	//save temporary information on function call parameters
+	private Stack<Type> parameterTypes = new Stack<Type>();
+	private Stack<String> parameterNames= new Stack<String>();
+	private Stack<String> parameterValues= new Stack<String>();
+
+	
+	public Interpreter(TinyLangAst intermediateRepresentation) {
+		//analyse the representation semantically
+		new SemanticAnalyser(intermediateRepresentation);
+		//push global scope 
+		st.push();
+		//interpret tinyLangProgram
+		visitTinyLangProgram(intermediateRepresentation);
+	}
+	//method which runs statement visit method based on node type
+	private void visitStatement(TinyLangAst tinyLangAst) {
+		switch(tinyLangAst.getAssociatedNodeType()) {
+			case AST_VARIABLE_DECLARATION_NODE:
+				visitVariableDeclarationNode(tinyLangAst);
+				break;
+			case AST_ASSIGNMENT_NODE:
+				visitAssignmentNode(tinyLangAst);
+				break;
+			case AST_PRINT_STATEMENT_NODE:
+				visitPrintStatementNode(tinyLangAst);
+				break;
+			case AST_IF_STATEMENT_NODE:
+				visitIfStatementNode(tinyLangAst);
+				break;
+			case AST_FOR_STATEMENT_NODE:
+				visitForStatementNode(tinyLangAst);
+				break;
+			case AST_WHILE_STATEMENT_NODE:
+				visitWhileStatementNode(tinyLangAst);
+				break;
+			case AST_RETURN_STATEMENT_NODE:
+				visitReturnStatementNode(tinyLangAst);
+				break;
+			case AST_FUNCTION_DECLARATION_NODE:
+				visitFunctionDeclarationNode(tinyLangAst);
+				break;
+			case AST_BLOCK_NODE:
+				visitBlockNode(tinyLangAst);
+				break;
+			default:
+				throw new java.lang.RuntimeException("Unrecognised statement of  type "+tinyLangAst.getAssociatedNodeType());
+			}	
+		}
+	//visit expression 
+	//visit expression based on node type 
+		private void visitExpression(TinyLangAst tinyLangAst){
+			switch(tinyLangAst.getAssociatedNodeType()) {
+			case AST_BINARY_OPERATOR_NODE:
+				visitBinaryOperatorNode(tinyLangAst);
+				break;
+			case AST_UNARY_OPERATOR_NODE:
+				visitUnaryOperatorNode(tinyLangAst);
+				break;
+			case AST_BOOLEAN_LITERAL_NODE:
+				visitBooleanLiteralNode(tinyLangAst);
+				break;
+			case AST_INTEGER_LITERAL_NODE:
+				visitIntegerLiteralNode(tinyLangAst);
+				break;
+			case AST_FLOAT_LITERAL_NODE:
+				visitFloatLiteralNode(tinyLangAst);
+				break;
+			case AST_CHAR_LITERAL_NODE:
+				visitCharLiteralNode(tinyLangAst);
+				break;
+			case AST_IDENTIFIER_NODE:
+				visitIdentifierNode(tinyLangAst);
+				break;
+			case AST_FUNCTION_CALL_NODE:
+				visitFunctionCallNode(tinyLangAst);
+				break;
+			default:
+				throw new java.lang.RuntimeException("Unrecognised expression node of type "+tinyLangAst.getAssociatedNodeType());
+			}	
+		}
+	@Override
+	public void visitTinyLangProgram(TinyLangAst tinyLangAst) {
+		//program ≡ sequence of statements : traverse all statement nodes
+		for(TinyLangAst statement : tinyLangAst.getChildren()) 
+			visitStatement(statement);
+	}
+	@Override
+	public void visitVariableDeclarationNode(TinyLangAst tinyLangAst) {	
+		//get variable type
+		Type varType = Type.valueOf(tinyLangAst.getChildren().get(0).getAssociatedNodeValue());
+		//get hold on identifier 
+		String varName = tinyLangAst.getChildren().get(1).getAssociatedNodeValue(); 
+		//visit expression and update current expression value
+		TinyLangAst expression = tinyLangAst.getChildren().get(2);
+		visitExpression(expression);
+		//add variable declaration in current scope 
+		st.insertVariableDeclaration(varName, varType);
+		//add value assigned to variable 
+		st.insertVariableValue(varName,currentExpressionValue);
+	}
+	@Override
+	public void visitAssignmentNode(TinyLangAst tinyLangAst) {
+		//get identifier name
+		String varName = tinyLangAst.getChildren().get(0).getAssociatedNodeValue();
+		//update current expression value
+		TinyLangAst expression = tinyLangAst.getChildren().get(1); 
+		visitExpression(expression);
+		int i;
+		/*
+		 * start traversing from inner scope to outer scope to find in
+		 * which innermost scope variable is declared
+		 */
+		for(i=st.getScopes().size()-1;i>=0;i--) {
+			if(st.getScopes().get(i).isVariableNameBinded(varName))
+				break;
+		}
+		/*
+		 * go in that innermost scope and update the value 
+		 */
+		st.getScopes().get(i).addVariableValue(varName, currentExpressionValue);
+	}
+
+	@Override
+	public void visitPrintStatementNode(TinyLangAst tinyLangAst) {
+		visitExpression(tinyLangAst.getChildren().get(0));
+		System.out.println(currentExpressionValue);
+	}
+	@Override
+	public void visitIfStatementNode(TinyLangAst tinyLangAst) {
+		TinyLangAst expression= tinyLangAst.getChildren().get(0);
+		//evaluate if condition 
+		visitExpression(expression);
+		//check condition
+		if(currentExpressionValue.equals("true"))
+			visitBlockNode(tinyLangAst.getChildren().get(1));
+		//if we have an else block 
+		else if (currentExpressionValue.equals("false") && tinyLangAst.getChildren().size()==3)
+			visitBlockNode(tinyLangAst.getChildren().get(2));
+
+	}
+
+	@Override
+	public void visitForStatementNode(TinyLangAst tinyLangAst) {
+		//we have a list of possibilities for a for loop statement
+		
+		//no variable declaration and no assignment
+		
+		/*
+		 * 				for loop
+		 * 				   / \
+		 * 			  	  /   \
+         * 		expression	   block
+		 */
+		
+		//this can be encoded as a while loop statement
+		if(tinyLangAst.getChildren().size()==2) {
+			TinyLangAst expression  = tinyLangAst.getChildren().get(0);
+			TinyLangAst block = tinyLangAst.getChildren().get(1);
+			visitExpression(expression);
+			while(currentExpressionValue.equals("true")) {
+				//visit block 
+				visitBlockNode(block);
+				//update current expression value
+				visitExpression(expression);
+			}
+		}
+		//if we have both variable declaration and assignment
+		
+		/*
+		 * 				    for loop---\
+		 * 			   	    / /    \    \ 
+		 * 		           / /      \    \
+		 * 				  /  |       \   block
+         * 	             / expression \
+ 		 *          variable           \
+		 *          declaration        updation/assignment
+		 *
+	 	*/
+		else if(tinyLangAst.getChildren().size()==4) {
+			TinyLangAst variableDeclaration = tinyLangAst.getChildren().get(0);
+			//visit variable declaration 
+			visitVariableDeclarationNode(variableDeclaration);
+			//visit expression and update current expression value
+			visitExpression(tinyLangAst.getChildren().get(1));
+			while(currentExpressionValue.equals("true")) {
+				//visit block
+				visitBlockNode(tinyLangAst.getChildren().get(3));
+				//carry out updation/assignment
+				visitAssignmentNode(tinyLangAst.getChildren().get(2));
+				//update current expression value
+				visitExpression(tinyLangAst.getChildren().get(1));
+			}
+			st.deleteVariable(variableDeclaration.getChildren().get(1).getAssociatedNodeValue());
+		}
+	//if we have variable declaration and no assignment
+		
+		/*
+		 * 				    for loop 
+		 * 		           /  /     \  
+		 * 				  /  /       \  
+         * 	             / expression \ 
+ 		 *          variable           \
+		 *          declaration        block
+		 *
+	 	*/
+		else if(tinyLangAst.getChildren().get(0).getAssociatedNodeType()==TinyLangAstNodes.AST_VARIABLE_DECLARATION_NODE) {
+			TinyLangAst variableDeclaration = tinyLangAst.getChildren().get(0); 
+			//declare variable
+			visitVariableDeclarationNode(variableDeclaration);
+			//update current expression value 
+			visitExpression(tinyLangAst.getChildren().get(0));
+			while(currentExpressionValue.equals("true")) {
+				//execute statements
+				visitBlockNode(tinyLangAst.getChildren().get(2));
+				//update current expression value
+				visitExpression(tinyLangAst.getChildren().get(0));
+
+			}
+			st.deleteVariable(variableDeclaration.getChildren().get(1).getAssociatedNodeValue());
+		}	
+	//if we have assignment and no variable declaration
+		
+		/*
+		 * 				    for loop 
+		 * 		           /    /    \  
+		 * 				  /    /      \  
+         * 	             /    /        \
+         *              /    assignment \ 
+ 		 *      expression               \
+		 *                              block
+		 *
+	 	*/
+		else if(tinyLangAst.getChildren().get(1).getAssociatedNodeType()==TinyLangAstNodes.AST_ASSIGNMENT_NODE)
+		{
+			//visit expression and update current expression value
+			visitExpression(tinyLangAst.getChildren().get(0));
+			while(currentExpressionValue.equals("true")) {
+				//visit block
+				//carry out update/assignment
+				visitAssignmentNode(tinyLangAst.getChildren().get(1));
+				//update current expression value
+				visitExpression(tinyLangAst.getChildren().get(0));
+			}
+		}
+		else 
+			throw new java.lang.RuntimeException("unexpected for loop case in line "+tinyLangAst.getLineNumber());
+	}
+
+	@Override
+	public void visitWhileStatementNode(TinyLangAst tinyLangAst) {
+		//get a hold on block of while loop
+		TinyLangAst block = tinyLangAst.getChildren().get(1);
+		//update current expression value 
+		TinyLangAst expression  = tinyLangAst.getChildren().get(0);
+		visitExpression(expression);
+		//while current expression value is true 
+		//keep on looping 
+		while(currentExpressionValue.equals("true")) {
+			//visit block 
+			visitBlockNode(block);
+			//update current expression value
+			visitExpression(expression);
+		}
+	}
+
+	@Override
+	public void visitReturnStatementNode(TinyLangAst tinyLangAst) {
+		//update current expression value
+		visitExpression(tinyLangAst.getChildren().get(0));
+	}
+
+	@Override
+	public void visitFunctionDeclarationNode(TinyLangAst tinyLangAst) {
+		//add function definition and values to symbol table
+		//get function block ast
+		TinyLangAst functionBlock = tinyLangAst.getChildren().get(3);
+		//get variable type
+		Type functionType = Type.valueOf(tinyLangAst.getChildren().get(0).getAssociatedNodeValue());
+		//get hold on identifier 
+		String functionName = tinyLangAst.getChildren().get(1).getAssociatedNodeValue();
+		//get function parameter types 
+		Stack<Type> functionParameterTypes = new Stack<Type>();
+		Stack<String> functionParameterNames = new Stack<String>();
+		//add parameters types and values 
+		for(TinyLangAst formalParameter : tinyLangAst.getChildren().get(2).getChildren()) {
+			functionParameterTypes.push(Type.valueOf(formalParameter.getChildren().get(0).getAssociatedNodeValue()));
+			functionParameterNames.push(formalParameter.getChildren().get(1).getAssociatedNodeValue());
+		}
+		//add function parameter types and names to st
+		st.insertFunctionDeclaration(new FunctionSignature(functionName,functionParameterTypes), functionType);
+		st.insertFunctionParameterNames(new FunctionSignature(functionName,functionParameterTypes),functionParameterNames);	
+		st.insertFunctionBlock(new FunctionSignature(functionName,functionParameterTypes),functionBlock);
+	}
+	@Override
+	public void visitFunctionCallNode(TinyLangAst tinyLangAst) {
+
+		//function name
+		String functionName = tinyLangAst.getChildren().get(0).getAssociatedNodeValue();
+		for(TinyLangAst expression :tinyLangAst.getChildren().get(1).getChildren()) {
+			visitExpression(expression);
+			parameterTypes.push(currentExpressionType);
+			parameterValues.push(currentExpressionValue);
+		}		
+		//function signature types of parameters 
+		int i;
+		for(i=st.getScopes().size()-1;i>=0;i--)
+			if(st.getScopes().get(i).isFunctionAlreadyDefined(new FunctionSignature(functionName,parameterTypes)))
+				break;
+		//add temporary function parameters names
+		parameterNames.addAll(st.getScopes().get(i).getParameterNames(new FunctionSignature(functionName,parameterTypes)));
+		//visit corresponding function block 
+		visitBlockNode(st.getScopes().get(i).getBlock(new FunctionSignature(functionName,parameterTypes)));
+
+	}
+
+	@Override
+	public void visitBlockNode(TinyLangAst tinyLangAst) {
+		//enter a new scope
+		st.push();
+		//check all temporary function parameter stacks are of the same size
+		if(!(parameterTypes.size()==parameterNames.size()&&parameterNames.size()==parameterValues.size())) 
+			throw new java.lang.RuntimeException("error with function call handling");
+		//add parameters of functions if any in scope
+		for(int i=0;i<parameterTypes.size();i++) {
+			//add variable declaration in current scope 
+			st.insertVariableDeclaration(parameterNames.get(i), parameterTypes.get(i));
+			//add value assigned to variable 
+			st.insertVariableValue(parameterNames.get(i),parameterValues.get(i));		
+			}
+		//clear temporary function parameters data
+		parameterTypes.clear();
+		parameterNames.clear();
+		parameterValues.clear();
+		//traverse statements in block
+		for(TinyLangAst statement:tinyLangAst.getChildren())
+			visitStatement(statement);
+		//leave scope
+		st.pop();		
+	}
+
+	
+	@Override
+	public void visitBinaryOperatorNode(TinyLangAst tinyLangAst) {
+		//get operator 
+
+		String operator = tinyLangAst.getAssociatedNodeValue();
+
+		//get left node  (left operand)
+		TinyLangAst leftOperand = tinyLangAst.getChildren().get(0);
+		//visit expression to update current char type
+		visitExpression(leftOperand);
+		//obtain the type of the left operand
+		Type leftOperandType = currentExpressionType;
+		//obtain the value of the left operand
+		String leftOperandValue = currentExpressionValue;
+		
+		//redo for right operand
+		TinyLangAst rightOperand = tinyLangAst.getChildren().get(1);
+		visitExpression(rightOperand);
+		Type rightOperandType = currentExpressionType;
+		String rightOperandValue = currentExpressionValue;
+		if(operator.equals("+")){
+			//check operand type
+			if(leftOperandType.equals(Type.INTEGER)&&rightOperandType.equals(Type.INTEGER)) {
+				//int+int -> int
+				currentExpressionType = Type.INTEGER;
+				currentExpressionValue = String.valueOf(Integer.parseInt(leftOperandValue)+Integer.parseInt(rightOperandValue));
+			}
+			//if one is floating 
+			else if(leftOperandType.equals(Type.FLOAT)||rightOperandType.equals(Type.FLOAT)) {
+				//int+int -> int
+				currentExpressionType = Type.FLOAT;
+				currentExpressionValue = String.valueOf(Float.parseFloat(leftOperandValue)+Float.parseFloat(rightOperandValue));
+			}
+			else {
+				throw new java.lang.RuntimeException("unexpected operator processing exception in line "+tinyLangAst.getLineNumber());
+			}
+		}
+		else if(operator.equals("-")){
+			//check operand type
+			if(leftOperandType.equals(Type.INTEGER)&&rightOperandType.equals(Type.INTEGER)) {
+				//int+int -> int
+				currentExpressionType = Type.INTEGER;
+				currentExpressionValue = String.valueOf(Integer.parseInt(leftOperandValue)-Integer.parseInt(rightOperandValue));
+			}
+			//if one is floating 
+			else if(leftOperandType.equals(Type.FLOAT)||rightOperandType.equals(Type.FLOAT)) {
+				currentExpressionType = Type.FLOAT;
+				currentExpressionValue = String.valueOf(Float.parseFloat(leftOperandValue)-Float.parseFloat(rightOperandValue));
+			}
+			else
+				throw new java.lang.RuntimeException("unexpected operator processing exception in line "+tinyLangAst.getLineNumber());
+			}
+		
+		else if(operator.equals("*")){
+			//check operand type
+			if(leftOperandType.equals(Type.INTEGER)&&rightOperandType.equals(Type.INTEGER)) {
+				//int+int -> int
+				currentExpressionType = Type.INTEGER;
+				currentExpressionValue = String.valueOf(Integer.parseInt(leftOperandValue)*Integer.parseInt(rightOperandValue));
+			}
+			//if one is floating 
+			else if(leftOperandType.equals(Type.FLOAT)||rightOperandType.equals(Type.FLOAT)) {
+				currentExpressionType = Type.FLOAT;
+				currentExpressionValue = String.valueOf(Float.parseFloat(leftOperandValue)*Float.parseFloat(rightOperandValue));
+			}
+			else
+				throw new java.lang.RuntimeException("unexpected operator processing exception in line "+tinyLangAst.getLineNumber());
+			}
+		else if(operator.equals("/")){
+			//check if right operand is 0 
+			if(Float.parseFloat(rightOperandValue)==0)
+				throw new java.lang.RuntimeException("division by 0 undefined in line "+tinyLangAst.getLineNumber());
+			//check operand type
+			if(leftOperandType.equals(Type.INTEGER)&&rightOperandType.equals(Type.INTEGER)) {
+				//int+int -> int
+				currentExpressionType = Type.INTEGER;
+				currentExpressionValue = String.valueOf(Integer.parseInt(leftOperandValue)/Integer.parseInt(rightOperandValue));
+			}
+			//if one is floating 
+			else if(leftOperandType.equals(Type.FLOAT)||rightOperandType.equals(Type.FLOAT)) {
+				currentExpressionType = Type.FLOAT;
+				currentExpressionValue = String.valueOf(Float.parseFloat(leftOperandValue)/Float.parseFloat(rightOperandValue));
+			}
+			else
+				throw new java.lang.RuntimeException("unexpected runtime exception in line "+tinyLangAst.getLineNumber());
+			}
+		//boolean operators
+		else if(operator.equals("and")) {
+			currentExpressionType = Type.BOOL;
+			if(leftOperandValue.equals("true") && rightOperandValue.equals("true"))
+				currentExpressionValue = "true";
+			else 
+				currentExpressionValue = "false";
+		}
+		else if(operator.equals("or")) {
+			currentExpressionType = Type.BOOL;
+			if(leftOperandValue.equals("true") || rightOperandValue.equals("true"))
+				currentExpressionValue = "true";
+			else 
+				currentExpressionValue = "false";
+		}
+		//comparison types
+		else if(operator.equals("==")) {
+			currentExpressionType = Type.BOOL;
+			if(leftOperandValue.equals(rightOperandValue))
+				currentExpressionValue = "true";
+			else 
+				currentExpressionValue = "false";
+		}
+		else if(operator.equals("!=")) {
+			currentExpressionType = Type.BOOL;
+			if(!leftOperandValue.equals(rightOperandValue))
+				currentExpressionValue = "true";
+			else 
+				currentExpressionValue = "false";
+		}
+		else if(operator.equals("<")) {
+			currentExpressionType = Type.BOOL;
+			if(Float.parseFloat(leftOperandValue)<Float.parseFloat(rightOperandValue))
+				currentExpressionValue = "true";
+			else 
+				currentExpressionValue = "false";
+		}
+		else if(operator.equals("<=")) {
+			currentExpressionType = Type.BOOL;
+			if(Float.parseFloat(leftOperandValue)<=Float.parseFloat(rightOperandValue))
+				currentExpressionValue = "true";
+			else 
+				currentExpressionValue = "false";
+		}
+		else if(operator.equals(">")) {
+			currentExpressionType = Type.BOOL;
+			if(Float.parseFloat(leftOperandValue)>Float.parseFloat(rightOperandValue))
+				currentExpressionValue = "true";
+			else 
+				currentExpressionValue = "false";
+		}
+		else if(operator.equals(">=")) {
+			currentExpressionType = Type.BOOL;
+			if(Float.parseFloat(leftOperandValue)>=Float.parseFloat(rightOperandValue))
+				currentExpressionValue = "true";
+			else 
+				currentExpressionValue = "false";
+		}
+		else {
+			throw new java.lang.RuntimeException("unexcepted binary operator error in line "+tinyLangAst.getLineNumber());
+		}
+		}
+	@Override
+	public void visitUnaryOperatorNode(TinyLangAst tinyLangAst) {
+		TinyLangAst expression = tinyLangAst.getChildren().get(0);
+		visitExpression(expression);
+		String operator = tinyLangAst.getAssociatedNodeValue();
+		if(currentExpressionType==Type.FLOAT) {
+			if(operator.equals("-"))
+				currentExpressionValue = String.valueOf(-1*Float.parseFloat(currentExpressionValue));
+		}
+		else if(currentExpressionType==Type.INTEGER) {
+			if(operator.equals("-")) {
+				currentExpressionValue = String.valueOf(-1*Integer.parseInt(currentExpressionValue));
+			}
+		}
+		else if(currentExpressionType==Type.BOOL) {
+			if(operator.equals("not")) {
+				if(currentExpressionValue.equals("true"))
+					currentExpressionValue = "false";
+				else 
+					currentExpressionValue = "true";		
+			}
+		}
+		else
+			throw new java.lang.RuntimeException
+			("unexpected error when handling unary opertor in line "+tinyLangAst.getLineNumber());
+	}
+	@Override
+	public void visitIdentifierNode(TinyLangAst tinyLangAst) {
+		//Identifier name
+		String identifier = tinyLangAst.getAssociatedNodeValue();
+		//traverse the scopes to find the identifier type and value
+		int i;
+		for(i=st.getScopes().size()-1;i>=0;i--) {
+			if(st.getScopes().get(i).isVariableNameBinded(identifier))
+				break;
+		}
+		currentExpressionType = st.getScopes().get(i).getVariableType(identifier);
+		currentExpressionValue = st.getScopes().get(i).getVariableValue(identifier);
+	}
+
+	@Override
+	public void visitBooleanLiteralNode(TinyLangAst tinyLangAst) {
+		String boolIdentifier = tinyLangAst.getAssociatedNodeValue();
+		currentExpressionType = Type.BOOL;
+		currentExpressionValue = boolIdentifier;
+	}
+
+	@Override
+	public void visitIntegerLiteralNode(TinyLangAst tinyLangAst) {
+		String integerIdentifier = tinyLangAst.getAssociatedNodeValue();
+		currentExpressionType = Type.INTEGER;
+		currentExpressionValue = integerIdentifier;
+	}
+
+	@Override
+	public void visitFloatLiteralNode(TinyLangAst tinyLangAst) {
+		String floatIdentifier = tinyLangAst.getAssociatedNodeValue();
+		currentExpressionType = Type.FLOAT;
+		currentExpressionValue = floatIdentifier;
+	}
+	@Override
+	public void visitCharLiteralNode(TinyLangAst tinyLangAst) {
+		String charIdentifier = tinyLangAst.getAssociatedNodeValue();
+		currentExpressionType = Type.CHAR;
+		currentExpressionValue = charIdentifier;		
+	}
+}
+\end{lstlisting}
+\section{GitHub Repo}
+\github{https://github.com/andimon}  Repo Link [publicly available from 19th June 2022] : \href{https://github.com/andimon/tinylang}{\blue{TinyLang Repository Link}}
+
