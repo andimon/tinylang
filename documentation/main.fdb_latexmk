@@ -1,5 +1,5 @@
 # Fdb version 3
-["pdflatex"] 1707068343 "main.tex" "main.pdf" "main" 1707068343
+["pdflatex"] 1707073080 "main.tex" "main.pdf" "main" 1707073080
   "/home/andimon/.texlive2021/texmf-var/fonts/pk/ljfour/public/concmath-fonts/xccex10.600pk" 1707065031 13872 f3a2d9538e99a9288a8f8b2325975352 ""
   "/home/andimon/.texlive2021/texmf-var/fonts/pk/ljfour/public/concmath-fonts/xccmi10.1244pk" 1707065017 37612 4dc841874866d4e06dceb9da4de178cf ""
   "/home/andimon/.texlive2021/texmf-var/fonts/pk/ljfour/public/concmath-fonts/xccmi10.1493pk" 1707065019 46456 041fe5ee9e9dac0e377ee1b5602ce7ed ""
@@ -309,7 +309,7 @@
   "Introduction/introduction.tex" 1707054658 5771 d4bb7f54be3a02e5c4966d224d0d37da ""
   "Task1/output/tokenOutput1.png" 1707054658 151253 9ee951c01bfcd4f5d477782aba2f0d2e ""
   "Task1/output/tokenOutput2.png" 1707054658 245087 ecbee4f6285388a0a3555d24a61b55e7 ""
-  "Task1/task1.tex" 1707068343 45871 2c23a606bc00eaf99cc9354df7e87c91 ""
+  "Task1/task1.tex" 1707068983 45923 f9c007b6c9a1bf49a7d9b456b41eba4b ""
   "Task2/image/error1.png" 1707054658 19267 1694c5c2a4608f11bca93b7467e5556a ""
   "Task2/image/error2.png" 1707054658 19133 14e8af6a6b5ac9bf27889df779a94b32 ""
   "Task2/image/error3.png" 1707054658 17488 feeaef1a143619489ff2bddedab4dca4 ""
@@ -331,11 +331,11 @@
   "Task345/images/xmlOutput2.png" 1707054658 114861 48bf6ddef1259678e7b3d646583c9668 ""
   "Task345/images/xmlOutput3.png" 1707054658 119298 15400672fda3644e9140c69ee31e4bbe ""
   "Task345/task3,4,5.tex" 1707054658 45534 71c2a4d3a03dbfdb738a3990e413eab5 ""
-  "main.aux" 1707068210 49285 b20567133028dd6cab067972520eedd1 "pdflatex"
-  "main.out" 1707068210 5342 77ca6a253f9b3f472461e85ef92074ba "pdflatex"
+  "main.aux" 1707073078 49329 cbd5f5a56a27de3033dde9238b47993b "pdflatex"
+  "main.out" 1707073078 5342 77ca6a253f9b3f472461e85ef92074ba "pdflatex"
   "main.tex" 1707068193 472 4057533582982756971aafe1c66f9da9 ""
-  "main.toc" 1707068210 6854 9b0b78e0676932ad6290c5705cd1cff0 "pdflatex"
-  "myclass.cls" 1707065499 7339 bc02d9bf8bb97488d5f9c71dbbf4aaeb ""
+  "main.toc" 1707073078 6892 fbc347f5ef1479b91bee401c0e98ed68 "pdflatex"
+  "myclass.cls" 1707073062 7309 8b5b46faaaf31353f5604aeeef7ef547 ""
   (generated)
   "main.aux"
   "main.log"

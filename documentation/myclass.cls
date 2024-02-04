@@ -196,13 +196,13 @@ Extension = .ttf
 
 \parbox[b][0.95\textheight][t]{0.2\textwidth}{\raggedleft} %% this 0.95 is important, otherwise page overflows in next page
 \hspace*{2ex}
-\textcolor{red}{\rule{2pt}{0.95\textheight}}
+\textcolor{black}{\rule{2pt}{0.95\textheight}}
 \hspace*{2ex}
 \parbox[b][0.95\textheight][t]{0.8\textwidth}{
     \setlength{\parindent}{0pt}
     %%\fontfamily{pag}\selectfont
     \sffamily
-    {\Huge\bfseries{\begin{Spacing}{1.15}\textcolor{red}{\@title}\end{Spacing}}}
+    {\Huge\bfseries{\begin{Spacing}{1.15}{\@title}\end{Spacing}}}
     \vspace*{2ex}
     {\textit{\@tagline}}\\[1in]
     
@@ -215,10 +215,10 @@ Extension = .ttf
     %\@ifundefined{@cosupervisor}{\\[2ex]}{\\[2ex]\large Co-supervised by \@cosupervisor}\\[1cm]
     %{\large \@department} \\[1ex]
     %{\large \@faculty} \\[1ex]
-    {\large University of Malta} \\
+    {\large } \\
     \vfill
     %{\bfseries \@degreedate}\\[\baselineskip]
-	\parbox[t]{0.80\linewidth}{\footnotesize\textit{An assignment submitted in partial fulfilment of the requirements for the unit of \@degree}.}    
+	% \parbox[t]{0.80\linewidth}{\footnotesize\textit{An assignment submitted in partial fulfilment of the requirements for the unit of \@degree}.}    
 }
 \thispagestyle{empty}
 \if@openright\cleardoublepage\else\clearpage\fi
