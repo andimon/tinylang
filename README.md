@@ -2,7 +2,9 @@
 A compiler built in Java using a table-driven lexer for a tiny language.
 
 ## Implementation
-For information regarding implementation details see [report](/report.pdf).
+
+For detailed information, see the report.
+
 ## Usage
 
 Executing the following TinyLang program (`program1.tl`):
