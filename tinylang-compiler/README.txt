@@ -1,1 +1,1 @@
-TO COMPILE Command : mvn package
+To compile: mvn package
