@@ -1,5 +1,5 @@
 # Fdb version 3
-["pdflatex"] 1707082459 "main.tex" "main.pdf" "main" 1707082459
+["pdflatex"] 1707083381 "main.tex" "main.pdf" "main" 1707083381
   "/home/andimon/.texlive2021/texmf-var/fonts/pk/ljfour/public/concmath-fonts/xccex10.600pk" 1707065031 13872 f3a2d9538e99a9288a8f8b2325975352 ""
   "/home/andimon/.texlive2021/texmf-var/fonts/pk/ljfour/public/concmath-fonts/xccmi10.1244pk" 1707065017 37612 4dc841874866d4e06dceb9da4de178cf ""
   "/home/andimon/.texlive2021/texmf-var/fonts/pk/ljfour/public/concmath-fonts/xccmi10.1493pk" 1707065019 46456 041fe5ee9e9dac0e377ee1b5602ce7ed ""
@@ -332,12 +332,12 @@
   "Task345/images/xmlOutput1.png" 1707054658 66815 ad649c6e7cc98202d67f9d08ad74c365 ""
   "Task345/images/xmlOutput2.png" 1707054658 114861 48bf6ddef1259678e7b3d646583c9668 ""
   "Task345/images/xmlOutput3.png" 1707054658 119298 15400672fda3644e9140c69ee31e4bbe ""
-  "Task345/task3,4,5.tex" 1707082459 46595 629e1b52d54bd15f12916804f10ed1c5 ""
-  "main.aux" 1707082369 49449 242901dcc0d45b307e1ed513d0e029c2 "pdflatex"
-  "main.out" 1707082369 5342 a8031a540c5b8ee15aa61320808ce4d4 "pdflatex"
-  "main.tex" 1707081835 443 4c75173b38f82282969aaf7a871f3b31 ""
-  "main.toc" 1707082369 6891 86752af70b22e7c7fbfda7981696408f "pdflatex"
-  "myclass.cls" 1707079439 7418 a49f601e8847b84de92ee4ebc04ec517 ""
+  "Task345/task3,4,5.tex" 1707082628 46910 3f877cbc57ce7802baadb2b311337b28 ""
+  "main.aux" 1707083266 49447 c2fde21e0c575c1f8909e9bb2b7cdd1b "pdflatex"
+  "main.out" 1707083266 5342 a8031a540c5b8ee15aa61320808ce4d4 "pdflatex"
+  "main.tex" 1707083381 443 0f1df8c508d66721f5500e64bdf47f1d ""
+  "main.toc" 1707083266 6891 66d4f45a7040e380462b4a8acd2a8dfb "pdflatex"
+  "myclass.cls" 1707083205 7233 4efa3a16bc943f354a3002adc788b0b0 ""
   (generated)
   "main.aux"
   "main.log"

@@ -94,9 +94,6 @@
 	\RequirePackage{graphicx}
 	\RequirePackage{concmath}
 	\RequirePackage{titlesec, blindtext, color}
-	%\usepackage[default,oldstyle,scale=0.95]{opensans} %% Alternatively
-	%% use the option 'defaultsans' instead of 'default' to replace the
-	%% sans serif font only.
 	\RequirePackage{fontspec}
 	\RequirePackage[sfdefault]{carlito}
 	\RequirePackage{amsthm}
@@ -129,9 +126,8 @@
 	%set chapter style
 	
 	%set chapter style
+	\titlespacing*{\chapter}{0pt}{0pt}{0pt}
 	\titleformat{\chapter}[hang]{\Huge\bfseries}{
-		% if chapter is 1 -> introduction
-		% if chapter is ... ->
 		{ \ifthenelse{\thechapter=0 \OR \thechapter=6}{\thechapter \;\textbf{|} \; }{Task \thechapter \;\textbf{|} \;}      }
 		}{0pt}{\Huge \color{red}}
 	%set section style %TODO
