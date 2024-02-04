@@ -8,14 +8,14 @@ The design requires us to have an interface  \verb!Vistor! holding a visitor met
 \textbf{A diagram showcasing the design pattern is given below.}
 
 \begin{landscape}
-\begin{figure}[H]
-    \centering
-        
-    \includegraphics[scale=0.5]{Task345/images/UML.png}
-    
-    \caption{\emph{XmlGeneration,Semantic Analyser and Interpreter} are concrete implementations of interface EnumVisitor.}
-    \label{fig:enum based visitors design pattern}
-\end{figure}
+	\begin{figure}[H]
+		\centering
+						        
+		\includegraphics[scale=0.5]{Task345/images/UML.png}
+						    
+		\caption{\emph{XmlGeneration,Semantic Analyser and Interpreter} are concrete implementations of interface EnumVisitor.}
+		\label{fig:enum based visitors design pattern}
+	\end{figure}
 \end{landscape}
 
 \section{Design}
@@ -60,25 +60,25 @@ Class\verb! XMLGeneration! implements interface \verb!Visitor! as shown in figur
 
 Apart from the visitor methods the class also holds  these attributes and methods:
 \begin{itemize}
-    \item \verb!String xmlRepresentation! -> the actual XML of the program in consideration
-    \item \verb!int indentation! -> keeps track of the current indentation level and updates accordingly
-    \begin{itemize}
-        \item we have a method which generate an indentation as a sequence of tabs (\verb!0x09!) spaces where the number of white spaces correspond to \verb!indentation! 
-\begin{lstlisting}[caption=Get current indentation]
+	\item \verb!String xmlRepresentation! -> the actual XML of the program in consideration
+	\item \verb!int indentation! -> keeps track of the current indentation level and updates accordingly
+	      \begin{itemize}
+	      	\item we have a method which generate an indentation as a sequence of tabs (\verb!0x09!) spaces where the number of white spaces correspond to \verb!indentation! 
+	      	      \begin{lstlisting}[caption=Get current indentation]
 getCurrentIndentation():
     String indentation = ""
     for(i<0;i<this.identation;i++):
         indentation+="    "
         return indetation
-\end{lstlisting}
-    \end{itemize}
-    \item Constructor is given by:
-\begin{lstlisting}[caption=XmlGeneration Constructor]
+	      	      \end{lstlisting}
+	      \end{itemize}
+	\item Constructor is given by:
+	      \begin{lstlisting}[caption=XmlGeneration Constructor]
 XmlGeneration(Tree tree):
     //visit the whole abstract syntax tree is 
     //equivalent to visiting a program
     visitProgram(tree)
-\end{lstlisting}
+	      \end{lstlisting}
 \end{itemize}
 \subsection{visit Program and Statement(s)}
 The root node of any AST is of type \verb!AST_PROGRAM_NODE! hence we start any XML Generation with tag \verb!<TinyLangProgram>!. 
@@ -153,7 +153,7 @@ xmlRepresentation += getCurrentIndentation ()+"<\variable declaration>\n"
 \textbf{Note:} opening and closing tags attains the same level of indentation
 
 \textbf{
-The other statement visit methods are implemented similar to as shown in listing above.
+	The other statement visit methods are implemented similar to as shown in listing above.
 }
 
 \subsection{visit Expression(s)}
@@ -208,38 +208,30 @@ All the design decisions mentioned in \ref{sec:design task 3} are implemented as
 \section{Testing}
 Consider Program 1,2,3 discussed in testing Tasks 1,2,3 their XML representations are given below:
 \begin{figure}[H]
-    \centering
-    \includegraphics[scale=0.5]{Task345/images/xmlOutput1.png}
-    \caption{XML representation for program 1}
-    \label{fig:xml tree 1}
+	\centering
+	\includegraphics[scale=0.5]{Task345/images/xmlOutput1.png}
+	\caption{XML representation for program 1}
+	\label{fig:xml tree 1}
 \end{figure}
 \begin{figure}[H]
-    \centering
-    \includegraphics[scale=0.5]{Task345/images/xmlOutput2.png}
-    \caption{XML representation for program 2}
-    \label{fig:xml tree 2}
+	\centering
+	\includegraphics[scale=0.5]{Task345/images/xmlOutput2.png}
+	\caption{XML representation for program 2}
+	\label{fig:xml tree 2}
 \end{figure}
 \begin{figure}[H]
-    \centering
-    \includegraphics[scale=0.5]{Task345/images/xmlOutput3.png}
-    \caption{XML representation for program 3}
-    \label{fig:xml tree 3}
+	\centering
+	\includegraphics[scale=0.5]{Task345/images/xmlOutput3.png}
+	\caption{XML representation for program 3}
+	\label{fig:xml tree 3}
 \end{figure}
-
-
-
-
 
 \chapter{Semantic Analysis}
-\verb!SemanticAnalyser! class implements visitor methods to traverse the $AST$ to ensure that the program semantics are correct before moving to the interpretation tree.
-
+The \verb!SemanticAnalyser! class implements visitor methods to traverse the AST to ensure that the program semantics are correct before moving to the interpretation tree
 \section{Design}
 \label{sec:design semantic}
 \subsection{Scopes}
-We  keep track of scopes. 
-
-
-A global scope is created in the constructor and then we visit the program tree. A global scope is destroyed after a  successful visit  of the program tree without any errors. If we manage to reach the end of the global scope then we conclude that the program is semantically correct.
+We keep track of scopes. A global scope is created in the constructor, and then we visit the program tree. A global scope is destroyed after a successful visit of the program tree without any errors. If we manage to reach the end of the global scope, then we conclude that the program is semantically correct.
 \begin{lstlisting}[caption=PSEUDOCODE : constructor (start of program traversal)]
 //create new scope 
 st.push()
@@ -312,9 +304,9 @@ We allow for function overloading by defining the signature of a function.
 
 A function signature is made up by the name of the function and the types of the parameters. For example,
 \begin{enumerate}[(a)]
-\item fn Sq (int x , float y) -> int  {...}
-\item  fn Sq (int a , float b) -> char {...}
-\item fn Sq (float x , float y) -> float {...}
+	\item fn Sq (int x , float y) -> int  {...}
+	\item  fn Sq (int a , float b) -> char {...}
+	\item fn Sq (float x , float y) -> float {...}
 \end{enumerate}
 
 \textbf{(a)} and \textbf{(b)} have the same signature, \textbf{(b)} and \textbf{(c)} do not have the same signature.
@@ -365,54 +357,54 @@ An expression can take many forms. Whenever we have to visit an expression tree 
 
 We check the type of the expression as follows.
 \begin{itemize}
-    \item If expression is of type \textbf{binary expression.}
-    \verb!visitBinaryOperatorNode(Tree tree)! is implemented as follows. We get hold on what the operator is by checking the value associated with node/tree. Since the 2 children are expression in their own right we make a recursive call to \verb!visitExpression(Tree)! to obtain the type of both operands. Then we perform type checking and update \verb!currentExpressionType! accordingly.
-    \begin{itemize}
-        \item If the operator is \verb!'and'! or \verb!'or'! we check that both operands types are bool else we throw exception. We  also set  \verb!currentExpressionType! to bool. 
-        \item Else If the operator is \verb!+!, \verb!-!, \verb!/! and \verb!*!  we check that both operands types is of numeric type (float or int) else  throw exception. If one of the operands is of type float we set \verb!currentExpressionType! to float otherwise we set it to int.
-        \item Else If the operator is \verb!<!, \verb!>!, \verb!<=! and \verb!>=!  we check that both operands types is of numeric type (float or int) else  throw exception. We also set \verb!currentExpressionType! to bool.
-        \item Else If the operator is \verb!==!, \verb|!=| we check that both operands are of the same type otherwise we throw error. We set \verb!currentExpressionType! to bool. 
-        \item Else we throw \textbf{exception unrecognised operator}
-    \end{itemize}
-  
-  
-    \item If expression is of type \textbf{unary expression.}
-    \begin{itemize}
-        \item We check that the unary operator is \verb!+!, \verb!-!, or \verb!not! otherwise we throw exception. \item The only child of the unary operator tree is an expression in its own right. We visit the unary tree child and update \verb!currentExpressionType()!.
-        \item If current expression type is of numeric type (i.e. integer or float) we check if the operator is \verb!-! or \verb!+! otherwise we throw error.
-        \item If current expression type is of bool type we check if the operator is \verb!not! otherwise we throw error.
-    \end{itemize}
-  
-    \item If expression is of type \textbf{integer literal node expression.}
-    \begin{itemize}
-        \item We just set \verb!currentExpressionType! to int.
-    \end{itemize}
-    \item If expression is of type \textbf{float literal expression.}
-    \begin{itemize}
-        \item We just set \verb!currentExpressionType! to float.
-    \end{itemize}
-    \item If expression is of type \textbf{boolean literal expression.}
-    \begin{itemize}
-        \item We just set \verb!currentExpressionType! to boolean.
-    \end{itemize}
-    \item If expression is of type \textbf{char literal expression.}
-    
-       \begin{itemize}
-        \item We just set \verb!currentExpressionType! to char.
-    \end{itemize}
-    \item If expression is of type \textbf{identifier}
-    \begin{itemize}
-        \item Start traversing the scopes from the innermost scopes to check in which most inner scope the identifier is declared. Then we set \verb!currentExpressionType! to the type of the variable in that scope.
-    \end{itemize}
- 
-    \item If expression is of type \textbf{function call}
-    \begin{itemize}
-        \item     Get hold of the function signature by checking function name and each type of the actual parameters (expression).
-    
-    Start traversing scopes to see where the function is defined and use method \verb!getFunctionType(signature)! in that scope to obtain the type of the function and set \verb!currentExpressionType! to it.
-    \end{itemize}
-
-
+	\item If expression is of type \textbf{binary expression.}
+	      \verb!visitBinaryOperatorNode(Tree tree)! is implemented as follows. We get hold on what the operator is by checking the value associated with node/tree. Since the 2 children are expression in their own right we make a recursive call to \verb!visitExpression(Tree)! to obtain the type of both operands. Then we perform type checking and update \verb!currentExpressionType! accordingly.
+	      \begin{itemize}
+	      	\item If the operator is \verb!'and'! or \verb!'or'! we check that both operands types are bool else we throw exception. We  also set  \verb!currentExpressionType! to bool. 
+	      	\item Else If the operator is \verb!+!, \verb!-!, \verb!/! and \verb!*!  we check that both operands types is of numeric type (float or int) else  throw exception. If one of the operands is of type float we set \verb!currentExpressionType! to float otherwise we set it to int.
+	      	\item Else If the operator is \verb!<!, \verb!>!, \verb!<=! and \verb!>=!  we check that both operands types is of numeric type (float or int) else  throw exception. We also set \verb!currentExpressionType! to bool.
+	      	\item Else If the operator is \verb!==!, \verb|!=| we check that both operands are of the same type otherwise we throw error. We set \verb!currentExpressionType! to bool. 
+	      	\item Else we throw \textbf{exception unrecognised operator}
+	      \end{itemize}
+	      	      	        
+	      	      	        
+	\item If expression is of type \textbf{unary expression.}
+	      \begin{itemize}
+	      	\item We check that the unary operator is \verb!+!, \verb!-!, or \verb!not! otherwise we throw exception. \item The only child of the unary operator tree is an expression in its own right. We visit the unary tree child and update \verb!currentExpressionType()!.
+	      	\item If current expression type is of numeric type (i.e. integer or float) we check if the operator is \verb!-! or \verb!+! otherwise we throw error.
+	      	\item If current expression type is of bool type we check if the operator is \verb!not! otherwise we throw error.
+	      \end{itemize}
+	      	      	        
+	\item If expression is of type \textbf{integer literal node expression.}
+	      \begin{itemize}
+	      	\item We just set \verb!currentExpressionType! to int.
+	      \end{itemize}
+	\item If expression is of type \textbf{float literal expression.}
+	      \begin{itemize}
+	      	\item We just set \verb!currentExpressionType! to float.
+	      \end{itemize}
+	\item If expression is of type \textbf{boolean literal expression.}
+	      \begin{itemize}
+	      	\item We just set \verb!currentExpressionType! to boolean.
+	      \end{itemize}
+	\item If expression is of type \textbf{char literal expression.}
+	      	      	          
+	      \begin{itemize}
+	      	\item We just set \verb!currentExpressionType! to char.
+	      \end{itemize}
+	\item If expression is of type \textbf{identifier}
+	      \begin{itemize}
+	      	\item Start traversing the scopes from the innermost scopes to check in which most inner scope the identifier is declared. Then we set \verb!currentExpressionType! to the type of the variable in that scope.
+	      \end{itemize}
+	      	      	       
+	\item If expression is of type \textbf{function call}
+	      \begin{itemize}
+	      	\item     Get hold of the function signature by checking function name and each type of the actual parameters (expression).
+	      	      	      	      	      	          
+	      	      Start traversing scopes to see where the function is defined and use method \verb!getFunctionType(signature)! in that scope to obtain the type of the function and set \verb!currentExpressionType! to it.
+	      \end{itemize}
+	      	      	      
+	      	      	      
 \end{itemize}
 
 
@@ -427,22 +419,22 @@ We do not allow float literals to resolve to integer type. E.g. let x:int=5.01; 
 
 
 \begin{itemize}
-    \item \textbf{Variable Declaration.}
-    \begin{itemize}
-        \item We visit the expression (3rd child) then we check if \verb!currentExpressionType! is the same as the type of the variable. Note that by the consideration  shown above the type of var can be float and the type of expression can be int but not the other way around.
-    \end{itemize}
-    \item \textbf{Function Declaration.}
-    \begin{itemize}
-        \item We check that a function returns.
-        
-        
-     \textbf{A check to see if the type of expression it returns matches the type of the function was not implemented.}
-    \end{itemize}
-    \item \textbf{Assignment.}
-    \begin{itemize}
-        \item Similar to the case of variable declaration but we obtain the type of the variable by searching from the innermost scope, where the variable is declared and obtain its type by calling \verb!getVariableType(identifier)! in that scope instance.
-    \end{itemize}
-
+	\item \textbf{Variable Declaration.}
+	      \begin{itemize}
+	      	\item We visit the expression (3rd child) then we check if \verb!currentExpressionType! is the same as the type of the variable. Note that by the consideration  shown above the type of var can be float and the type of expression can be int but not the other way around.
+	      \end{itemize}
+	\item \textbf{Function Declaration.}
+	      \begin{itemize}
+	      	\item We check that a function returns.
+	      	      	      	      	      	              
+	      	      	      	      	      	              
+	      	      \textbf{A check to see if the type of expression it returns matches the type of the function was not implemented.}
+	      \end{itemize}
+	\item \textbf{Assignment.}
+	      \begin{itemize}
+	      	\item Similar to the case of variable declaration but we obtain the type of the variable by searching from the innermost scope, where the variable is declared and obtain its type by calling \verb!getVariableType(identifier)! in that scope instance.
+	      \end{itemize}
+	      	      	      
 \end{itemize}
 
 
@@ -459,9 +451,9 @@ The method is built recursively to deal with statements which have blocks. Other
 
 For the recursive parts we consider the following cases:
 \begin{itemize}
-    \item For an if statement we check if we have both the normal block and the else block else the statement is not guaranteed to return. Then we we check if both block returns.
-    \item A block/else-block is returning if it contains a statement that returns.
-    \item For for and while loops we check if the block returns.
+	\item For an if statement we check if we have both the normal block and the else block else the statement is not guaranteed to return. Then we we check if both block returns.
+	\item A block/else-block is returning if it contains a statement that returns.
+	\item For for and while loops we check if the block returns.
 \end{itemize}
 
 
@@ -518,11 +510,11 @@ else:
 
 \section{Implementation in Java}
 \begin{itemize}
-    \item The implementation class \verb!FunctionSignature! whose instance are used to check if functions are already declared is given in listing \ref{listing:functionsignature}
-    \item The implementation class \verb!Scope! and the data structures and methods required to make reference to the variables,functions is given in listing \ref{listing:scope}
-    \item The implementation of class symbol table which holds a stack of scopes, and method to insert/destroy scopes etc is given in listing \ref{listing:symboltable}
-    \item All points discussed through the design section \ref{sec:design semantic} are implemented as shown in listing \ref{listing:semanticanalyser}
-    \end{itemize}
+	\item The implementation class \verb!FunctionSignature! whose instance are used to check if functions are already declared is given in listing \ref{listing:functionsignature}
+	\item The implementation class \verb!Scope! and the data structures and methods required to make reference to the variables,functions is given in listing \ref{listing:scope}
+	\item The implementation of class symbol table which holds a stack of scopes, and method to insert/destroy scopes etc is given in listing \ref{listing:symboltable}
+	\item All points discussed through the design section \ref{sec:design semantic} are implemented as shown in listing \ref{listing:semanticanalyser}
+\end{itemize}
     
     
     
@@ -531,8 +523,8 @@ else:
 Let us test some program that are is semantically incorrect and ensure that an appropriate exception is produced.
 
 \begin{itemize}
-    \item A program with a function that is not guaranteed to return (conditional branching).
-\begin{lstlisting}[basicstyle=\tiny,caption=Program 4]
+	\item A program with a function that is not guaranteed to return (conditional branching).
+	      \begin{lstlisting}[basicstyle=\tiny,caption=Program 4]
 //a function must always return,this function is not guaranteed to return
 fn notGuranteedToReturn(x:char)->bool{
      if(x=='a'){ return true; }
@@ -548,39 +540,39 @@ fn notGuranteedToReturn(x:char)->bool{
         }     
      }
 }
-\end{lstlisting}
-    The following exception is thrown:
-    \begin{figure}[H]
-        \centering
-        \includegraphics[scale=0.7]{Task345/images/funcNotExpectedToReturn.png}
-        \caption{Exception}
-        \label{fig:exception function not expected to return}
-    \end{figure}
-    
-    
-        
-    
-    \item Expecting a bool expression 
-\begin{lstlisting}[basicstyle=\tiny,caption=Program 5]
+	      \end{lstlisting}
+	      The following exception is thrown:
+	      \begin{figure}[H]
+	      	\centering
+	      	\includegraphics[scale=0.7]{Task345/images/funcNotExpectedToReturn.png}
+	      	\caption{Exception}
+	      	\label{fig:exception function not expected to return}
+	      \end{figure}
+	      	      	          
+	      	      	          
+	      	      	              
+	      	      	          
+	\item Expecting a bool expression 
+	      \begin{lstlisting}[basicstyle=\tiny,caption=Program 5]
 //expecting an expression type of bool
 // i+10 is not of type bool -> error
 let i:int=1;
 while(i+10){
 	print i;
 }
-\end{lstlisting}
-
-    The following exception is thrown:
-    \begin{figure}[H]
-        \centering
-        \includegraphics[scale=0.7]{Task345/images/typeCheckingError.png}
-        \caption{Exception}
-        \label{fig:exception function not expected to return}
-    \end{figure}
-    
-    \item A program where 2 variables with the same name are defined in the same scope.
-    
-\begin{lstlisting}[basicstyle=\tiny,caption=Program 6]
+	      \end{lstlisting}
+	      	      	      
+	      The following exception is thrown:
+	      \begin{figure}[H]
+	      	\centering
+	      	\includegraphics[scale=0.7]{Task345/images/typeCheckingError.png}
+	      	\caption{Exception}
+	      	\label{fig:exception function not expected to return}
+	      \end{figure}
+	      	      	          
+	\item A program where 2 variables with the same name are defined in the same scope.
+	      	      	          
+	      \begin{lstlisting}[basicstyle=\tiny,caption=Program 6]
 fn notNice(x:char)->bool{
 	let x:bool=false;
 	//error variable x already declared
@@ -588,41 +580,41 @@ fn notNice(x:char)->bool{
 	print x;
 }
 
-\end{lstlisting}
-
-    The following exception is thrown:
-    \begin{figure}[H]
-        \centering
-        \includegraphics[scale=0.7]{Task345/images/errorVariableRedclar.png}
-        \caption{Exception}
-        \label{fig:exception function not expected to return}
-    \end{figure}
-
-    \item A function redeclared inside same program (same signature)
-    
-    
-    
-
-\begin{lstlisting}[basicstyle=\tiny,caption=Program 7]
+	      \end{lstlisting}
+	      	      	      
+	      The following exception is thrown:
+	      \begin{figure}[H]
+	      	\centering
+	      	\includegraphics[scale=0.7]{Task345/images/errorVariableRedclar.png}
+	      	\caption{Exception}
+	      	\label{fig:exception function not expected to return}
+	      \end{figure}
+	      	      	      
+	\item A function redeclared inside same program (same signature)
+	      	      	          
+	      	      	          
+	      	      	          
+	      	      	      
+	      \begin{lstlisting}[basicstyle=\tiny,caption=Program 7]
 fn notNice(x:char)->bool{
 	fn notNice(x:char)->int{
 		return 0;
 	}
 	return notNice('a');
 }
-\end{lstlisting}
-
-
-   The following exception is thrown:
-    \begin{figure}[H]
-        \centering
-        \includegraphics[scale=0.7]{Task345/images/errorFuncRedclar.png}
-        \caption{Exception}
-        \label{fig:exception function not expected to return}
-    \end{figure}
-    
-        \item A program that is semantically correct with \textbf{Function Overloading} -> a program containing program with same identifier but having parameter of different types
-\begin{lstlisting}[basicstyle=\tiny,caption=Program 8       ]
+	      \end{lstlisting}
+	      	      	      
+	      	      	      
+	      The following exception is thrown:
+	      \begin{figure}[H]
+	      	\centering
+	      	\includegraphics[scale=0.7]{Task345/images/errorFuncRedclar.png}
+	      	\caption{Exception}
+	      	\label{fig:exception function not expected to return}
+	      \end{figure}
+	      	      	          
+	\item A program that is semantically correct with \textbf{Function Overloading} -> a program containing program with same identifier but having parameter of different types
+	      \begin{lstlisting}[basicstyle=\tiny,caption=Program 8       ]
 fn nice(x:int)->float{
 	fn return2()->int{
 		return 2;
@@ -637,36 +629,35 @@ fn nice(x:float)->float{
 }
 print nice(1);
 print nice(1.0);
-\end{lstlisting}
-
-
-The program is semantically correct and the following output is thrown when interpreted (Task 5):
-\begin{figure}[H]
-    \centering
-    \includegraphics[scale=1]{Task345/images/semantically-correct-program.png}
-    \caption{Exception}
-    \label{fig:exception function not expected to return}
-\end{figure}    
-    
+	      \end{lstlisting}
+	      	      	      
+	      	      	      
+	      The program is semantically correct and the following output is thrown when interpreted (Task 5):
+	      \begin{figure}[H]
+	      	\centering
+	      	\includegraphics[scale=1]{Task345/images/semantically-correct-program.png}
+	      	\caption{Exception}
+	      	\label{fig:exception function not expected to return}
+	      \end{figure}    
+	      	      	          
 \end{itemize}
 
 \chapter{Interpreter}
 \label{sec:interpreter design}
 \section{Design}
-This task is similar to task 4. We need to have an appropriate symbol table to keep track of scopes. In this task we also require that the symbol table also holds values so we can  simulate an interpreter which executes the test program.
-
+This task is similar to task 4. We need to have an appropriate symbol table to keep track of scopes. In this task, we also require that the symbol table holds values so we can simulate an interpreter which executes the test program.
 
 \subsection{Scope}
 The following functionality was added in classes \verb!SemanticAnalyser! and \verb!Scope!.
 \begin{itemize}
-    \item In each scope we keep a mapping between variable names and their values \verb!Map<String,String> variableValues!. A mapping between a function signature and its block tree \verb!Map<FunctionSignature,Tree> functionBlock!. A mapping between function signatures and their respective parameter names \verb!Map<FunctionSignature,Stack<Strign>> functionParameterNames!.
-   
-    \item  Methods \verb!addVariableValue(String varName,String varValue)! to map a value to a variable, \verb!addFunctionBlock(FunctionSignature functionSignature,Tree block)! to map a block tree to a function and \verb!addFunctionParameterNames(FunctionSignature fs,!
-    \verb!Stack<String> names)! to map parameter identifiers to function.
+	\item In each scope we keep a mapping between variable names and their values \verb!Map<String,String> variableValues!. A mapping between a function signature and its block tree \verb!Map<FunctionSignature,Tree> functionBlock!. A mapping between function signatures and their respective parameter names \verb!Map<FunctionSignature,Stack<Strign>> functionParameterNames!.
+	      	      	         
+	\item  Methods \verb!addVariableValue(String varName,String varValue)! to map a value to a variable, \verb!addFunctionBlock(FunctionSignature functionSignature,Tree block)! to map a block tree to a function and \verb!addFunctionParameterNames(FunctionSignature fs,!
+	      \verb!Stack<String> names)! to map parameter identifiers to function.
 \end{itemize}
 
 \textbf{
-Ensure that program semantics are correct  to ensure that a program can be interpreted correctly.} A call to semantic analyser is made in constructor of the interpreter via \verb!new SemanticAnalyser(treeIntermediateRepresentation)!.
+	Ensure that program semantics are correct  to ensure that a program can be interpreted correctly.} A call to semantic analyser is made in constructor of the interpreter via \verb!new SemanticAnalyser(treeIntermediateRepresentation)!.
 
 
 
@@ -675,45 +666,45 @@ An interpreter class has values : \verb!Type currentExpresionType! and \verb!Str
 
 Whenever a statement  needs to evaluate an expression (i.e. has an expression subtree) we call method \verb!visitExpression(Tree tree)! which then makes a call to another visitor method base on the current node type/type of expression (see listing \ref{listing:expression visit}).
 \begin{itemize}
-    \item If current node type is of type \verb!AST_BINARY_OPERATOR_NODE! a call to \verb!visitBinaryOperatorNode(tree)! is made. 
-    \begin{itemize}
-        \item  We keep hold of the operator which is given by the node value. The left and right operands (2 children) are expression trees in their own right. A recursive call \verb!visitExpression(tree)! is made on both operands to obtain their type and value (by seeking the values of \verb!currentExpressionType! and \verb!currentExpressionValues!). Then we update the value of \verb!currentExpressionType! and \verb!currentExpressionValue! based on the binary operator and the values and types of both operands. For example consider the following scenarios:
-        \begin{itemize}
-            \item Operator is \verb!"+"! and both operators are of type int with values \verb!"1"! and \verb!"3"!. We set the \verb!currentExpressionType! to int and the \verb!currentExpresionValue! to \verb!String.valueOf(Int.parseInt("1")+Int.parseInt("3"))="4"!
-               \item \textbf{(Implicit Typecasting Case)} Operator is \verb!"*"! and one  operators  of type int  and the other is of type float with values \verb!"2"! and \verb!"3.3"!. We set the \verb!currentExpressionType! to float and the \verb!currentExpresionValue! to \verb!String.valueOf(Float.parseFloat("2")*!
-               \verb!Float.parseFloat("3.3"))="6.6"!
-               \item (\verb!currentExpressionType! \textbf{depends on value case})
-               \item Operator is \verb!"=="! and both operands are of the same type otherwise we throw error unexpected. We set the \verb!currentExpressionType! to the type of the operands and the \verb!currentExpresionValue! to \verb!"true"! if both operands have the same value (i.e. \verb!value1.equals(value2)!), otherwise we set it to \verb!false!.
-        \end{itemize}
-    \end{itemize}
- 
-        \item If current node type is of type \verb!AST_UNARY_OPERATOR_NODE! a call to \verb!visitUnaryOperatorNode(tree)! is made.
-         \begin{itemize}
-        \item A unary tree has an expression subtree as its child. We call \verb!visitExpression(Tree tree)! on  its child to update \verb!currentExpressionValue! and \verb!currentExpressionType!. If the current expression type is \verb!int! or \verb!float!  we check if the unary operator is \verb!-!. If it is we update the value of the current expression e.g. \verb!currentExpressionValue=String.valueOf(-1*Integer.!
-        \verb!parseInt(currentExpresssionValue))!. Else if the current expression is of type bool we check i f the unary operator is \verb!not! we update current expression value to false if it was true and to true if it was false.
-        Else we throw error unexpected.
-        \end{itemize}
-        
-         \item If current node type is of type \verb!AST_BOOLEAN_LITERAL_NODE! a call to \verb!visitBooleanLiteralNode(tree)! is made.
-         \begin{itemize}
-             \item When we visit a node of type boolean literal we set the current expression type to bool and the current expression value to the value associated with the node (true or false).
-         \item Nodes of type \verb!AST_INT_LITERAL!, \verb!AST_FLOAT_LITERAL! and \verb!AST_CHAR_LITERAL! are dealt with in a similar way.
-       
-         \end{itemize}
-         
-            \item If current node type is of type \verb!AST_IDENTIFIER_NODE! a call to \verb!visitIdentifierNode(tree)! is made.
-           \begin{itemize}
-               \item We get hold on the value/identifier name of the node. We search  the most inner scope the variable name is declared by calling \verb!scope.isVariableNameBinded(identifier)! in each scope. We obtain the type  and value of the variable at that scope by calling methods \verb!scope.getVariableType(identifier)! and \verb!scope.getVariableName(identifier)! and we update the \verb!currentExpressionValue! and \verb!currentExpressionType!.
-           \end{itemize}
-           \item If current node type is of type \verb!AST_FUNCTION_CALL_NODE! a call to \verb!visitFunctionCallNode(tree)! is made.
-           \begin{itemize}
-                \item Class interpreter have 2 other data structures \verb!parameterTypes! and \verb!parameterValues!.
-               \item For a function call we obtain the name of the function and the expression, and we visit all the actual parameters/expressions to obtain the \verb!currentExpressionType! and push it to \verb!paramaterTypes! and obtain \verb!currentExpressionValue! and push it to \verb!parameterValues! 
-               \item We start searching the scopes to find where the function is declared. We check if a function is declared in a scope using the instance method \verb!isFunctionAlreadyDefine(new FunctionSignature(functionName,parameterValues))!
-              \item  The interpreter also has a data structure \verb!parameterNames! so when we visit a block node corresponding to the function we can declare the local function variables.
-              \item We obtain the block corresponding to a declared function in some scope by using the instance method \verb!getBlock(Function Signature)!
-           \end{itemize}
-         
+	\item If current node type is of type \verb!AST_BINARY_OPERATOR_NODE! a call to \verb!visitBinaryOperatorNode(tree)! is made. 
+	      \begin{itemize}
+	      	\item  We keep hold of the operator which is given by the node value. The left and right operands (2 children) are expression trees in their own right. A recursive call \verb!visitExpression(tree)! is made on both operands to obtain their type and value (by seeking the values of \verb!currentExpressionType! and \verb!currentExpressionValues!). Then we update the value of \verb!currentExpressionType! and \verb!currentExpressionValue! based on the binary operator and the values and types of both operands. For example consider the following scenarios:
+	      	      \begin{itemize}
+	      	      	\item Operator is \verb!"+"! and both operators are of type int with values \verb!"1"! and \verb!"3"!. We set the \verb!currentExpressionType! to int and the \verb!currentExpresionValue! to \verb!String.valueOf(Int.parseInt("1")+Int.parseInt("3"))="4"!
+	      	      	\item \textbf{(Implicit Typecasting Case)} Operator is \verb!"*"! and one  operators  of type int  and the other is of type float with values \verb!"2"! and \verb!"3.3"!. We set the \verb!currentExpressionType! to float and the \verb!currentExpresionValue! to \verb!String.valueOf(Float.parseFloat("2")*!
+	      	      	      \verb!Float.parseFloat("3.3"))="6.6"!
+	      	      	\item (\verb!currentExpressionType! \textbf{depends on value case})
+	      	      	\item Operator is \verb!"=="! and both operands are of the same type otherwise we throw error unexpected. We set the \verb!currentExpressionType! to the type of the operands and the \verb!currentExpresionValue! to \verb!"true"! if both operands have the same value (i.e. \verb!value1.equals(value2)!), otherwise we set it to \verb!false!.
+	      	      \end{itemize}
+	      \end{itemize}
+	      	      	       
+	\item If current node type is of type \verb!AST_UNARY_OPERATOR_NODE! a call to \verb!visitUnaryOperatorNode(tree)! is made.
+	      \begin{itemize}
+	      	\item A unary tree has an expression subtree as its child. We call \verb!visitExpression(Tree tree)! on  its child to update \verb!currentExpressionValue! and \verb!currentExpressionType!. If the current expression type is \verb!int! or \verb!float!  we check if the unary operator is \verb!-!. If it is we update the value of the current expression e.g. \verb!currentExpressionValue=String.valueOf(-1*Integer.!
+	      	      \verb!parseInt(currentExpresssionValue))!. Else if the current expression is of type bool we check i f the unary operator is \verb!not! we update current expression value to false if it was true and to true if it was false.
+	      	      Else we throw error unexpected.
+	      \end{itemize}
+	      	      	              
+	\item If current node type is of type \verb!AST_BOOLEAN_LITERAL_NODE! a call to \verb!visitBooleanLiteralNode(tree)! is made.
+	      \begin{itemize}
+	      	\item When we visit a node of type boolean literal we set the current expression type to bool and the current expression value to the value associated with the node (true or false).
+	      	\item Nodes of type \verb!AST_INT_LITERAL!, \verb!AST_FLOAT_LITERAL! and \verb!AST_CHAR_LITERAL! are dealt with in a similar way.
+	      	      	      	      	      	             
+	      \end{itemize}
+	      	      	               
+	\item If current node type is of type \verb!AST_IDENTIFIER_NODE! a call to \verb!visitIdentifierNode(tree)! is made.
+	      \begin{itemize}
+	      	\item We get hold on the value/identifier name of the node. We search  the most inner scope the variable name is declared by calling \verb!scope.isVariableNameBinded(identifier)! in each scope. We obtain the type  and value of the variable at that scope by calling methods \verb!scope.getVariableType(identifier)! and \verb!scope.getVariableName(identifier)! and we update the \verb!currentExpressionValue! and \verb!currentExpressionType!.
+	      \end{itemize}
+	\item If current node type is of type \verb!AST_FUNCTION_CALL_NODE! a call to \verb!visitFunctionCallNode(tree)! is made.
+	      \begin{itemize}
+	      	\item Class interpreter have 2 other data structures \verb!parameterTypes! and \verb!parameterValues!.
+	      	\item For a function call we obtain the name of the function and the expression, and we visit all the actual parameters/expressions to obtain the \verb!currentExpressionType! and push it to \verb!paramaterTypes! and obtain \verb!currentExpressionValue! and push it to \verb!parameterValues! 
+	      	\item We start searching the scopes to find where the function is declared. We check if a function is declared in a scope using the instance method \verb!isFunctionAlreadyDefine(new FunctionSignature(functionName,parameterValues))!
+	      	\item  The interpreter also has a data structure \verb!parameterNames! so when we visit a block node corresponding to the function we can declare the local function variables.
+	      	\item We obtain the block corresponding to a declared function in some scope by using the instance method \verb!getBlock(Function Signature)!
+	      \end{itemize}
+	      	      	               
 \end{itemize}
 
 \subsection{Evaluation of statements}
@@ -723,46 +714,46 @@ type of statement (see listing \ref{listing:visit statement tree}).
 
 
 \begin{itemize}
-    \item If current node type is of type \verb!AST_VARIABLE_DECLARATION_NODE! a call to \verb!visitVariableDeclarationNode(tree)! is made.
-    \begin{itemize}
-        \item We obtain the type and var name from the first  and second children respectively. We visit the expression tree (3rd child) to update \verb!currentExpressionType!  and \verb!currentExpressionValue!. We push the variable type,name and value in current scope.
-        \begin{itemize}
-            \item \verb!st.insertVariableDeclartaion(varName,varType)!
-            \item \verb!st.insertVariableValue(varName,currentExpressionValue)!
-        \end{itemize}
-    \end{itemize}
-        \item If current node type is of type \verb!AST_ASSIGNMENT_NODE! a call to \verb!visitAssignmentNode(tree)! is made.
-        \begin{itemize}
-            \item Obtain the identifier name from the value associated with the first child. Visit visit the expression (2nd child) to update \verb!currentExpressionType! and \verb!currentExpresssionValue!. Then we search the inner most scope where the variable is declared and update the varaible value by calling instance method
-            \verb!addVariableValue(varName, currentExpressionValue)! which updates the value of of the map $varName \rightarrow varValue$ in the innermost scope.
-        \end{itemize}
-    \item If current node type is of type \verb!AST_PRINT_STATEMENT_NODE! a call to \verb!visitPrintStatementNode(tree)! is made. 
-    \begin{itemize}
-        \item \textbf{This allows us to test the program by verifying the output.}
-        \item we visit expression tree (first child) and update the current expression value then we print the value of the current exprssion
-        
-        \verb!System.out.println(currentExpressionValue)!
-    \end{itemize}
-     \item If current node type is of type \verb!AST_IF_STATEMENT_NODE! a call to \verb!visitIfStatementNode(tree)! is made.
-     \begin{itemize}
-         \item We visit the expression fir child and update\verb!currentExpressionValue! and \verb!currentExpressionType!. We check if the current expression.
-         \item If the \verb!currentExpressionValue! is true we visit the block node.
-         \item If the \verb!currentExpressionValue! is false we visit the else block (we also check that an else block exists i.e. we check also that if statement has 3 children). 
-     \end{itemize}
-        \item If current node type is of type \verb!AST_FOR_STATEMENT_NODE! a call to \verb!visitForStatementNode(tree)! is made.
-        \begin{itemize}
-            \item To deal with the different cases the for loop was encoded as a while loop.
-            \item When the for loop has no variable declaration and assignment (only an expression) we keep repeating the statements in the block statements and update the expression (to update truth value). PSEUDOCODE code is given below.
-\begin{lstlisting}[caption={\emph{for(;expression;)\{...\}} encoded as while loop}]
+	\item If current node type is of type \verb!AST_VARIABLE_DECLARATION_NODE! a call to \verb!visitVariableDeclarationNode(tree)! is made.
+	      \begin{itemize}
+	      	\item We obtain the type and var name from the first  and second children respectively. We visit the expression tree (3rd child) to update \verb!currentExpressionType!  and \verb!currentExpressionValue!. We push the variable type,name and value in current scope.
+	      	      \begin{itemize}
+	      	      	\item \verb!st.insertVariableDeclartaion(varName,varType)!
+	      	      	\item \verb!st.insertVariableValue(varName,currentExpressionValue)!
+	      	      \end{itemize}
+	      \end{itemize}
+	\item If current node type is of type \verb!AST_ASSIGNMENT_NODE! a call to \verb!visitAssignmentNode(tree)! is made.
+	      \begin{itemize}
+	      	\item Obtain the identifier name from the value associated with the first child. Visit visit the expression (2nd child) to update \verb!currentExpressionType! and \verb!currentExpresssionValue!. Then we search the inner most scope where the variable is declared and update the varaible value by calling instance method
+	      	      \verb!addVariableValue(varName, currentExpressionValue)! which updates the value of of the map $varName \rightarrow varValue$ in the innermost scope.
+	      \end{itemize}
+	\item If current node type is of type \verb!AST_PRINT_STATEMENT_NODE! a call to \verb!visitPrintStatementNode(tree)! is made. 
+	      \begin{itemize}
+	      	\item \textbf{This allows us to test the program by verifying the output.}
+	      	\item we visit expression tree (first child) and update the current expression value then we print the value of the current exprssion
+	      	      	      	      	      	              
+	      	      \verb!System.out.println(currentExpressionValue)!
+	      \end{itemize}
+	\item If current node type is of type \verb!AST_IF_STATEMENT_NODE! a call to \verb!visitIfStatementNode(tree)! is made.
+	      \begin{itemize}
+	      	\item We visit the expression fir child and update\verb!currentExpressionValue! and \verb!currentExpressionType!. We check if the current expression.
+	      	\item If the \verb!currentExpressionValue! is true we visit the block node.
+	      	\item If the \verb!currentExpressionValue! is false we visit the else block (we also check that an else block exists i.e. we check also that if statement has 3 children). 
+	      \end{itemize}
+	\item If current node type is of type \verb!AST_FOR_STATEMENT_NODE! a call to \verb!visitForStatementNode(tree)! is made.
+	      \begin{itemize}
+	      	\item To deal with the different cases the for loop was encoded as a while loop.
+	      	\item When the for loop has no variable declaration and assignment (only an expression) we keep repeating the statements in the block statements and update the expression (to update truth value). PSEUDOCODE code is given below.
+	      	      \begin{lstlisting}[caption={\emph{for(;expression;)\{...\}} encoded as while loop}]
 while(currentExpressionValue.equals("true")){
     visitBlockNode(block)
     //update current expression value
     visitExpression(expression);
 }
-\end{lstlisting}
-            \item When the for loop has both a variable declaration and an assignment the first child is a variable declaration statement so we call \verb!visitVariableDeclarationNode(first child subtree)! to declare the variable in current scope and we visit the expression (2nd child) to update \verb!currentExpressionValue! to check if it is true or false.
-            Then for loop is encoded in a while loop as given in the following PSEUDOCODE.
-\begin{lstlisting}[caption=\emph{for(declaration;expression;assignment)\{...\}}]
+	      	      \end{lstlisting}
+	      	\item When the for loop has both a variable declaration and an assignment the first child is a variable declaration statement so we call \verb!visitVariableDeclarationNode(first child subtree)! to declare the variable in current scope and we visit the expression (2nd child) to update \verb!currentExpressionValue! to check if it is true or false.
+	      	      Then for loop is encoded in a while loop as given in the following PSEUDOCODE.
+	      	      \begin{lstlisting}[caption=\emph{for(declaration;expression;assignment)\{...\}}]
 while(currentExpressionValue="true"){
     //4th child correspond to block node
     visitBlockNode(4th child)
@@ -771,36 +762,36 @@ while(currentExpressionValue="true"){
     //update truth value
     visitExpression(2nd child)
 }
-\end{lstlisting}
-\item After the while loop stops then we delete the variable assigned in the while loop from the current instance by calling instance method \verb!st.deleteVariable!
-\end{itemize}
-\item \textbf{We deal with the other cases i.e. case where we have no assignment and case where we have no variable declaration using a similar strategy.}
-
-\item If current node type is of type \verb!AST_WHILE_STATEMENT_NODE! a call to \verb!visitWhileStatementNode(tree)! is made. A while statement is easily implemented using a while loop itself.
-\begin{lstlisting}[caption=encoding of while loop]
+	      	      \end{lstlisting}
+	      	\item After the while loop stops then we delete the variable assigned in the while loop from the current instance by calling instance method \verb!st.deleteVariable!
+	      \end{itemize}
+	\item \textbf{We deal with the other cases i.e. case where we have no assignment and case where we have no variable declaration using a similar strategy.}
+	      	      	      
+	\item If current node type is of type \verb!AST_WHILE_STATEMENT_NODE! a call to \verb!visitWhileStatementNode(tree)! is made. A while statement is easily implemented using a while loop itself.
+	      \begin{lstlisting}[caption=encoding of while loop]
     //first child corresponds to expression -> update current expression value
     visitExpression(first child)
     while(currentExpressionValue.equals("true")):
         visitBlockNode(block);
         visitExpression(expression);
-\end{lstlisting}
- \item If current node type is of type \verb!AST_RETURN_STATEMENT_NODE! a call to \verb!visitReturnStatementNode(tree)! is made.
- \begin{itemize}
-     \item All we do is just update \verb!currentExpressionType! and \verb!currentExpressionValue! by visiting the expression tree (1st child).
- \end{itemize}
-      \item If current node type is of type \verb!AST_FUNCTION_DECLARATION_NODE! a call to \verb!visitFunctionDeclarationNode(tree)! is made.
-    \begin{itemize}
-        \item We obtain the type, name and block tree of the function from the first, second and fourth child respectively. We traverse the formal parameters tree (3rd child) to obtain a a stack \verb!functionParameterTypes! and a stack \verb!functionParameterNames! of function parameter types and names respectively.
-        \item 
-        We insert the function declaration in current scope by calling the instance method \verb!st.insertFunctionDeclaration(new!
-        \verb!FunctionSignature(functionName,functioNParameters)!. Similarly we map the function parameter names and the function block to the function signature in the current scope.
-    \end{itemize}
-   \item If current node type is of type \verb!AST_BLOCK_NODE! a call to \verb!visitBlockNode(tree)! is made.
-   \begin{itemize}
-       \item We create a new local scope \verb!st.push()! when we start traversing the block subtree and destroy scope \verb!st.pop! when we leave.
-       \item Also before we start traversing the statements we declare the function parameters inside the newly created local scope.
-       \item After they have been declared we clear any data structures in class \verb!Intepreter! holding information about formal parameters.
-   \end{itemize}
+	      \end{lstlisting}
+	\item If current node type is of type \verb!AST_RETURN_STATEMENT_NODE! a call to \verb!visitReturnStatementNode(tree)! is made.
+	      \begin{itemize}
+	      	\item All we do is just update \verb!currentExpressionType! and \verb!currentExpressionValue! by visiting the expression tree (1st child).
+	      \end{itemize}
+	\item If current node type is of type \verb!AST_FUNCTION_DECLARATION_NODE! a call to \verb!visitFunctionDeclarationNode(tree)! is made.
+	      \begin{itemize}
+	      	\item We obtain the type, name and block tree of the function from the first, second and fourth child respectively. We traverse the formal parameters tree (3rd child) to obtain a a stack \verb!functionParameterTypes! and a stack \verb!functionParameterNames! of function parameter types and names respectively.
+	      	\item 
+	      	      We insert the function declaration in current scope by calling the instance method \verb!st.insertFunctionDeclaration(new!
+	      	      \verb!FunctionSignature(functionName,functioNParameters)!. Similarly we map the function parameter names and the function block to the function signature in the current scope.
+	      \end{itemize}
+	\item If current node type is of type \verb!AST_BLOCK_NODE! a call to \verb!visitBlockNode(tree)! is made.
+	      \begin{itemize}
+	      	\item We create a new local scope \verb!st.push()! when we start traversing the block subtree and destroy scope \verb!st.pop! when we leave.
+	      	\item Also before we start traversing the statements we declare the function parameters inside the newly created local scope.
+	      	\item After they have been declared we clear any data structures in class \verb!Intepreter! holding information about formal parameters.
+	      \end{itemize}
 \end{itemize}
 
 \section{Implementation in Java}
@@ -809,8 +800,8 @@ All the design decisions implemented in section \ref{sec:interpreter design} are
 \section{Testing}
 Let us interpret some programs
 \begin{itemize}
-    \item Printing \verb!HelloWorld! character by character.
-\begin{lstlisting}[basicstyle=\tiny,caption=helloworld.tl]
+	\item Printing \verb!HelloWorld! character by character.
+	      \begin{lstlisting}[basicstyle=\tiny,caption=helloworld.tl]
 print 'H';
 print 'e';
 print 'l';
@@ -821,32 +812,32 @@ print 'o';
 print 'r';
 print 'l';
 print 'd';
-\end{lstlisting}
-Interpreter produces the following output:
-\begin{figure}[H]
-    \centering
-    \includegraphics[scale=0.8]{Task345/images/helloworld.png}
-    \caption{Output of helloworld.tl}
-    \label{fig:output helloworld}
-\end{figure}
-\item \textbf{(Recursion)} Find the 12th Fibonacci number (1,1,2,3,5,8,13,21,34,55,89,\textbf{144},....)  
-\begin{lstlisting}[basicstyle=\tiny,caption=fibonacci.tl]
+	      \end{lstlisting}
+	      Interpreter produces the following output:
+	      \begin{figure}[H]
+	      	\centering
+	      	\includegraphics[scale=0.8]{Task345/images/helloworld.png}
+	      	\caption{Output of helloworld.tl}
+	      	\label{fig:output helloworld}
+	      \end{figure}
+	\item \textbf{(Recursion)} Find the 12th Fibonacci number (1,1,2,3,5,8,13,21,34,55,89,\textbf{144},....)  
+	      \begin{lstlisting}[basicstyle=\tiny,caption=fibonacci.tl]
 fn fib(n:int)->int
 {
 	if(n<=1) {return n;}
 	else {return (fib(n-1)+fib(n-2));}
 }
 print fib(12);
-\end{lstlisting}
-Interpreter produces the following output:
-\begin{figure}[H]
-    \centering
-    \includegraphics[scale=0.8]{Task345/images/fib.png}
-    \caption{Output of fibonacci.tl}
-    \label{fig:output fibonacci}
-\end{figure}
-\item We consider variable values in the most inner scope.
-\begin{lstlisting}[basicstyle=\tiny,caption=variables variables.tl]
+	      \end{lstlisting}
+	      Interpreter produces the following output:
+	      \begin{figure}[H]
+	      	\centering
+	      	\includegraphics[scale=0.8]{Task345/images/fib.png}
+	      	\caption{Output of fibonacci.tl}
+	      	\label{fig:output fibonacci}
+	      \end{figure}
+	\item We consider variable values in the most inner scope.
+	      \begin{lstlisting}[basicstyle=\tiny,caption=variables variables.tl]
 {
     let a:int=5;
     print a;
@@ -859,16 +850,16 @@ Interpreter produces the following output:
 	  }
     }
 }
-\end{lstlisting}
-Interpreter produces the following output:
-\begin{figure}[H]
-    \centering
-    \includegraphics[scale=0.8]{Task345/images/variables-output.png}
-    \caption{Output of variables.tl}
-    \label{fig:output fibonacci}
-\end{figure}
-\item Some recursive operators on $\mathbb{N}$.
-\begin{lstlisting}[basicstyle=\tiny,caption= recursive.tl]
+	      \end{lstlisting}
+	      Interpreter produces the following output:
+	      \begin{figure}[H]
+	      	\centering
+	      	\includegraphics[scale=0.8]{Task345/images/variables-output.png}
+	      	\caption{Output of variables.tl}
+	      	\label{fig:output fibonacci}
+	      \end{figure}
+	\item Some recursive operators on $\mathbb{N}$.
+	      \begin{lstlisting}[basicstyle=\tiny,caption= recursive.tl]
 fn add(a:int,b:int)->int{
     if(b==0){return a;}
     else{
@@ -894,17 +885,17 @@ fn power(a:int,b:int)->int{
 print add(5,3);
 print multiply(5,3);
 print power(5,3);
-\end{lstlisting}
-\begin{figure}[H]
-    \centering
-    \includegraphics[scale=0.8]{Task345/images/recursive.png}
-    \caption{Output of recursive.tl}
-    \label{fig:output fibonacci}
-\end{figure}
-\item A program that uses the previous functions to work out the summation $\sum\limits_{k=0}^{5} k^2+(2*k+2)=2+5+10+17+26+37=97 $
-
-
-\begin{lstlisting}[basicstyle=\tiny,caption=sum.tl]
+	      \end{lstlisting}
+	      \begin{figure}[H]
+	      	\centering
+	      	\includegraphics[scale=0.8]{Task345/images/recursive.png}
+	      	\caption{Output of recursive.tl}
+	      	\label{fig:output fibonacci}
+	      \end{figure}
+	\item A program that uses the previous functions to work out the summation $\sum\limits_{k=0}^{5} k^2+(2*k+2)=2+5+10+17+26+37=97 $
+	      	      	      
+	      	      	      
+	      \begin{lstlisting}[basicstyle=\tiny,caption=sum.tl]
 fn add(a:int,b:int)->int{
     if(b==0){return a;}
     else{
@@ -939,20 +930,18 @@ for(let i:int=0;i<=5;i=i+1){
 
 }
 print sum;
-\end{lstlisting}
-\begin{figure}[H]
-    \centering
-    \includegraphics[scale=1.2]{Task345/images/sum.png}
-    \caption{Output of sum.tl}
-    \label{fig:output fibonacci}
-\end{figure}
+	      \end{lstlisting}
+	      \begin{figure}[H]
+	      	\centering
+	      	\includegraphics[scale=1.2]{Task345/images/sum.png}
+	      	\caption{Output of sum.tl}
+	      	\label{fig:output fibonacci}
+	      \end{figure}
 \end{itemize}
 \section{Future implementation}
 I wish to add the following features to the next iteration of tinylang:
 \begin{itemize}
-    \item Allow use of more complex data structures such as string and arrays.
-    \item Have more expressive printing methods.
-    \item Allow a program to make references to other programs.
+	\item Allow use of more complex data structures such as string and arrays.
+	\item Have more expressive printing methods.
+	\item Allow a program to make references to other programs.
 \end{itemize}
-
-

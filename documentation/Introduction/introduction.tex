@@ -41,67 +41,56 @@ print XGreaterY 2(Sq(1.5),y); // false
 print AverageOfThree (x,y,1.2); //3.28
 \end{lstlisting}
 
-
-
-
-
-
-
-
-
-
-
 \section{Using a tinylang's compiler}
 See folder (\emph{binary}) inside project directory.
 \begin{itemize}
-    \item Place the \verb!tinylang.jar! and \verb!program.tl! in the same directory.
-    \begin{figure}[H]
-        \centering
-        \includegraphics[scale=0.5]{Introduction/images/same_directory.png}
-        \caption{Program and compiler binary in same directory.}
-        \label{fig:placed in the same directory}
-    \end{figure}
-    \item Compile \verb!program.tl! using tinylang by running command 
-    
-    \verb!java -jar tinylang program!
-    \item We get a menu:
-    \begin{figure}[H]
-        \centering
-        \includegraphics[scale=0.6]{Introduction/images/menu.png}
-        \caption{3-option menu}
-        \label{fig:3optionmenu}
-    \end{figure}
-
-        \begin{figure}[H]
-            \centering
-           \includegraphics[scale=0.5]{Introduction/images/option1menu.png}
-            \caption{Option 1 : Lexer}
-            \label{fig:option1 lexer}
-        \end{figure}
-
-        \begin{figure}[H]
-            \centering
-           \includegraphics[scale=0.5]{Introduction/images/option2menu.png}
-            \caption{Option 2 : XML <-> AST}
-            \label{fig:option2 xml}
-        \end{figure}    
-  
-        \begin{figure}[H]
-            \centering
-           \includegraphics[scale=0.9]{Introduction/images/option3menu.png}
-            \caption{Option 3 : confirm that program is semantically correct + interpret}
-            \label{fig:opton 3 interpet}
-        \end{figure}
-
-    
+	\item Place the \verb!tinylang.jar! and \verb!program.tl! in the same directory.
+	      \begin{figure}[H]
+	      	\centering
+	      	\includegraphics[scale=0.5]{Introduction/images/same_directory.png}
+	      	\caption{Program and compiler binary in same directory.}
+	      	\label{fig:placed in the same directory}
+	      \end{figure}
+	\item Compile \verb!program.tl! using tinylang by running command 
+	      	          
+	      \verb!java -jar tinylang program!
+	\item We get a menu:
+	      \begin{figure}[H]
+	      	\centering
+	      	\includegraphics[scale=0.6]{Introduction/images/menu.png}
+	      	\caption{Menu with three options}
+	      	\label{fig:three-option-menu}
+	      \end{figure}
+	      	      
+	      \begin{figure}[H]
+	      	\centering
+	      	\includegraphics[scale=0.5]{Introduction/images/option1menu.png}
+	      	\caption{Option 1 : Lexer}
+	      	\label{fig:option-one-lexer}
+	      \end{figure}
+	      	      
+	      \begin{figure}[H]
+	      	\centering
+	      	\includegraphics[scale=0.5]{Introduction/images/option2menu.png}
+	      	\caption{Option 2: XML <-> AST}
+	      	\label{fig:option-two-lexer}
+	      \end{figure}    
+	      	        
+	      \begin{figure}[H]
+	      	\centering
+	      	\includegraphics[scale=0.9]{Introduction/images/option3menu.png}
+	      	\caption{Option 3: Confirms that the program is semantically correct and provide an interpretation of it}
+	      	\label{fig:option-three-interpreter}
+	      \end{figure}
+	      	      
 \end{itemize}
 
 
 
 
-\section{Syntax rules of \emph{TinyLang} in \emph{EBNF}}
+\section{Syntax rules of \emph{tinylang} in \emph{EBNF}}
 \label{sec:ebnf-tinylang-rules}
-\begin{lstlisting}[caption = EBNF capturing the Syntax Rules of \emph{TinyLang}.]
+\begin{lstlisting}[caption = EBNF capturing the Syntax Rules of \emph{tinylang}.]
 <Letter> ::= [A-Za-z]
 <Digit> ::= [0-9]
 <Printable> ::= [\x20-\x7E]
@@ -154,12 +143,12 @@ See folder (\emph{binary}) inside project directory.
 
 \section{Outline}
 \begin{itemize}
-    \item tinylang is written in Java and built with the following components:
-    \begin{itemize}
-    \item \textbf{lexer} which takes a whole program as one string an breaks it down into a sequence tokens.
-    \item \textbf{parser} which takes all tokens produced by lexer and produce an abtract syntax tree highlighting the logic of the whole program by parsing the program using the EBNF rules shown above and highlighting syntactical errors in the process.
-    \item \textbf{xml generator} produces an indented XML highlighting the structure of the tree (indentation) and all its nodal properties (tags).
-    \item \textbf{semantic analyser} used to perform semantic checks such as type checking, checking if a function returns, handling undeclared functions/vars etc.
-    \item  \textbf{interpreter } used traverse the program AST and simulates a live execution of the program.
-    \end{itemize}
+	\item tinylang is written in Java and built with the following components:
+	      \begin{itemize}
+	      	\item \textbf{Lexer}: Takes a whole program as one string and breaks it down into a sequence of tokens.
+	      	\item \textbf{Parser}: Takes all tokens produced by the lexer and produces an abstract syntax tree, highlighting the logic of the whole program by parsing the program using the EBNF rules shown above and highlighting syntactical errors in the process.
+	      	\item \textbf{XML generator}: Produces an indented XML highlighting the structure of the tree (indentation) and all its nodal properties (tags).
+	      	\item \textbf{Semantic analyser}: Used to perform semantic checks such as type checking, checking if a function returns, handling undeclared functions/variables, etc.
+	      	\item \textbf{Interpreter}: Used to traverse the program's abstract syntax tree and simulate a live execution of the program.
+	      \end{itemize}
 \end{itemize}

@@ -6,8 +6,7 @@
 
 \vskip 0.2in
 
-We can construct infinite number of lexemes (e.g.  $\mathbb{Z}$). To gain control, we categorise the lexemes into a finite number of groups and then write rules for each group to verify if a sequence of characters is a \emph{lexeme} in the group.
-
+We can construct an infinite number of lexemes (e.g. $\mathbb{Z}$). To gain control, we categorise the lexemes into a finite number of groups and then write rules for each group to verify if a sequence of characters is a lexeme in the group.
 \vskip 0.2in
 
 The task of choosing groups/types is not deterministic; however, a typical strategy (and the one used in this implementation) is:
@@ -651,10 +650,12 @@ $\delta: S\times I\rightarrow S$ where
 \subsection{Tokens}
 The job of the lexer is to generate to take the program as one big string and break it down into a sequence of tokens.
 
-A token is of the form $<TokenType,Attribute>$ where \textbf{token type} is just the name of one of the groups shown in tables \ref{tab: keyword lexemes}, \ref{tab:punctuation lexemes}, \ref{tab:operation lexemes}, \ref{tab:identifier literals lexemes}, \ref{fig: comments and multiline comments automaton} and the \textbf{attribute} can just be the lexeme associated to that group or it can include other statistics such as in which line number the lexeme  is.
+A token is of the form \verb!<TokenType; Attribute>! where the \textbf{token type} is just the name of one of the groups shown in tables \ref{tab: keyword lexemes}, \ref{tab:punctuation lexemes}, \ref{tab:operation lexemes}, \ref{tab:identifier literals lexemes}, \ref{fig: comments and multiline comments automaton} and the \textbf{attribute} can just be the lexeme associated to that group or it can include other statistics such as in which line number the lexeme  is.
 
 \vskip 0.2in
-Since we specified our micro-syntax in tabular form we  build a table-driven lexer. The algorithm of the lexer for generating sequences of tokens is given in the following subsection.
+
+Since we specified our micro-syntax in tabular form, we proceed to build a table-driven lexer. The algorithm of the lexer for generating sequences of tokens is given in the following subsection.
+
 \subsection{Generating sequence of tokens (PSEUDOCODE)}
 \begin{lstlisting}[caption=Table Driven Lexer PSEUDOCODE,label=listing:lexerpseudo]
 int currentCharIndex <- 0;
@@ -765,8 +766,7 @@ Token getNextToken(program):
 
 \section{Implementation in Java}
 \begin{itemize}
-    \item All the possible input categories shown in the classifier table \ref{table:classifier table} are described as a set of predefined constants (see listing \ref{listing:classifier table}).
-    \item All the states of the tinylang's automaton shown in figure \ref{fig:tiny lang automaton}  are described as a set of predefined constants and in the same enum class the types associated with each state are described, giving precedence to certain types if the sequence of characters matches some expected lexeme (see listing \ref{listing:states enum}).
+    \item All the possible input categories shown in the classifier table \ref{table:classifier table} are described as a set of predefined constants (see listing \ref{listing:classifier table}).    \item All the states of the tinylang's automaton shown in figure \ref{fig:tiny lang automaton}  are described as a set of predefined constants and in the same enum class the types associated with each state are described, giving precedence to certain types if the sequence of characters matches some expected lexeme (see listing \ref{listing:states enum}).
     \item The transition function (equivalent to the transition table) is implemented using \verb!HashMap! (see listing \ref{listing:transition table}).
     \item A token is implemented as a class (see listing \ref{listing:token}) to represent the pair \verb!<TokenType,Attribute>! having the following attributes:
     \begin{itemize}
