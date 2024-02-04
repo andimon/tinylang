@@ -1,4 +1,6 @@
 # Tex files 
+*.fls
+*.fdb_latexmk
 *.aux
 *.bit 
 *.blg
