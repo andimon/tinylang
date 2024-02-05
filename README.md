@@ -1,10 +1,10 @@
-## TinyLang
+## tinylang
 A compiler built for a study unit [CPS2000](https://www.um.edu.mt/courses/studyunit/CPS2000)  at the University of Malta as partial fullfilment of degree in Maths and Computer Science.
 ## Implementation
 For information regarding implementation details see [report](/documentation/main.pdf).
 ## Usage
 
-Executing the following TinyLang program (`program1.tl`):
+Interpreting the following tinylang program [program1.tl](/sample_programs_and_binary/program1.tl):
 ```
 /*
  Testing
@@ -16,9 +16,10 @@ let numru : float = (-2)+3.2;
 print numru;
 ```
 
-From project's directory run: 
+From project's directory:
 
-`cd sample_programs_and_binary && java -jar tinylang.jar program1`
+1. Compile and package: `cd ./tinylang && mvn clean package`
+2. Execute the encapsulated interpreter and load a program::  `java -jar ./target/tinylang-compiler-0.0.1-SNAPSHOT.jar ../sample_programs_and_binary/program1`
 
 
 
