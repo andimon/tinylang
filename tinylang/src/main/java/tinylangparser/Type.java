@@ -1,8 +1,8 @@
 package tinylangparser;
 
 public enum Type {
-	BOOL,
-	INTEGER,
-	FLOAT,
-	CHAR
+    BOOL,
+    INTEGER,
+    FLOAT,
+    CHAR
 }

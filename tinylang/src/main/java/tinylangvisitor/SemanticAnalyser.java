@@ -22,7 +22,7 @@ public class SemanticAnalyser implements Visitor {
 		visitTinyLangProgram(programTree);
 		//confirmation
 		st.pop();
-		System.out.println("Note: program is semantically correct");	
+		System.out.println("The given program is semantically correct.");
 	}
 	//this is used to analyse types of expressions
 	private Type currentExpressionType;
