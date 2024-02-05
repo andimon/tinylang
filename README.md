@@ -1,4 +1,9 @@
 ## tinylang
+
+[![alt text](https://img.shields.io/badge/report-pdf-blue "report")](/documentation/main.pdf)
+
+
+
 An interpreter constructed for the study unit [CPS2000](https://www.um.edu.mt/courses/studyunit/CPS2000) at the University of Malta as partial fulfilment of a degree in Maths and Computer Science.
 ## Implementation
 For information regarding implementation details see [report](/documentation/main.pdf).
